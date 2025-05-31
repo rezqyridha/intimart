@@ -1,160 +1,46 @@
-
--- Struktur Database Intimart
--- DROP DATABASE IF EXISTS intimart;
-CREATE DATABASE IF NOT EXISTS intimart;
 USE intimart;
 
--- Tabel User
-CREATE TABLE user (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    nama_lengkap VARCHAR(100),
-    role ENUM('admin', 'manajer', 'karyawan', 'sales') NOT NULL
-);
+-- 7.1 Tampilkan data restok + supplier
+SELECT rs.id, s.nama_supplier, rs.tgl_pesan, rs.status
+FROM restok_supplier rs
+JOIN supplier s ON rs.id_supplier = s.id;
 
--- Tabel Barang
-CREATE TABLE barang (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nama_barang VARCHAR(100) NOT NULL,
-    satuan VARCHAR(50),
-    harga_beli DECIMAL(12,2),
-    harga_jual DECIMAL(12,2),
-    stok_minimum INT DEFAULT 0
-);
+-- Expected Output:
+-- | id | nama_supplier     | tgl_pesan  | status   |
+-- |----|-------------------|------------|----------|
+-- | 1  | CV Sumber Jaya    | 2025-05-01 | diproses |
+-- | 2  | PT Mega Distribusi| 2025-05-02 | dikirim  |
 
--- Barang Masuk
-CREATE TABLE barang_masuk (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    id_barang INT,
-    tanggal DATE,
-    jumlah INT,
-    keterangan TEXT,
-    FOREIGN KEY (id_barang) REFERENCES barang(id)
-);
+-- 7.2 Tampilkan detail restok barang
+SELECT dr.id, b.nama_barang, dr.jumlah, rs.id AS restok_id
+FROM detail_restok dr
+JOIN barang b ON dr.id_barang = b.id
+JOIN restok_supplier rs ON dr.id_restok = rs.id;
 
--- Barang Keluar
-CREATE TABLE barang_keluar (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    id_barang INT,
-    tanggal DATE,
-    jumlah INT,
-    tujuan VARCHAR(100),
-    FOREIGN KEY (id_barang) REFERENCES barang(id)
-);
+-- Expected Output:
+-- | id | nama_barang | jumlah | restok_id |
+-- |----|-------------|--------|-----------|
+-- | 1  | Sabun Mandi | 100    | 1         |
+-- | 2  | Susu Kotak  | 50     | 1         |
+-- | 3  | Sabun Mandi | 150    | 2         |
 
--- Stok Fisik
-CREATE TABLE stok (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    id_barang INT,
-    jumlah INT,
-    lokasi VARCHAR(100),
-    FOREIGN KEY (id_barang) REFERENCES barang(id)
-);
+-- 7.3 Tampilkan barang yang akan expired
+SELECT bk.id, b.nama_barang, bk.tanggal_expired, bk.jumlah, bk.lokasi
+FROM barang_kadaluarsa bk
+JOIN barang b ON bk.id_barang = b.id;
 
--- Penjualan
-CREATE TABLE penjualan (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    id_barang INT,
-    id_sales INT,
-    tanggal DATE,
-    jumlah INT,
-    total DECIMAL(12,2),
-    FOREIGN KEY (id_barang) REFERENCES barang(id),
-    FOREIGN KEY (id_sales) REFERENCES user(id)
-);
+-- Expected Output:
+-- | id | nama_barang | tanggal_expired | jumlah | lokasi        |
+-- |----|-------------|------------------|--------|----------------|
+-- | 1  | Sabun Mandi | 2025-06-10       | 20     | Gudang Utama   |
+-- | 2  | Susu Kotak  | 2025-06-15       | 15     | Gudang Cabang  |
 
--- Retur
-CREATE TABLE retur (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    id_penjualan INT,
-    jumlah INT,
-    alasan TEXT,
-    tanggal DATE,
-    FOREIGN KEY (id_penjualan) REFERENCES penjualan(id)
-);
+-- 7.4 Laporan Target vs Realisasi
+SELECT u.nama_lengkap, ts.bulan, ts.target, ts.realisasi
+FROM target_sales ts
+JOIN user u ON ts.id_sales = u.id;
 
--- Pengiriman
-CREATE TABLE pengiriman (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    id_barang INT,
-    tujuan VARCHAR(100),
-    tanggal_kirim DATE,
-    status_pengiriman ENUM('dikirim', 'diterima') DEFAULT 'dikirim',
-    FOREIGN KEY (id_barang) REFERENCES barang(id)
-);
-
--- Pembayaran
-CREATE TABLE pembayaran (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    id_penjualan INT,
-    metode VARCHAR(50),
-    tanggal DATE,
-    jumlah DECIMAL(12,2),
-    FOREIGN KEY (id_penjualan) REFERENCES penjualan(id)
-);
-
--- Arus Kas
-CREATE TABLE arus_kas (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    tanggal DATE,
-    keterangan TEXT,
-    debet DECIMAL(12,2),
-    kredit DECIMAL(12,2)
-);
-
--- Piutang
-CREATE TABLE piutang (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    id_sales INT,
-    tanggal DATE,
-    jumlah DECIMAL(12,2),
-    status ENUM('belum lunas','lunas') DEFAULT 'belum lunas',
-    FOREIGN KEY (id_sales) REFERENCES user(id)
-);
-
--- Laba
-CREATE TABLE laba (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    periode VARCHAR(7),
-    total_pendapatan DECIMAL(12,2),
-    total_pengeluaran DECIMAL(12,2),
-    laba_bersih DECIMAL(12,2)
-);
-
--- Pemesanan
-CREATE TABLE pemesanan (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    id_barang INT,
-    jumlah INT,
-    tanggal DATE,
-    status ENUM('menunggu','disetujui','ditolak') DEFAULT 'menunggu',
-    FOREIGN KEY (id_barang) REFERENCES barang(id)
-);
-
--- Target Sales
-CREATE TABLE target_sales (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    id_sales INT,
-    bulan VARCHAR(7),
-    target INT,
-    FOREIGN KEY (id_sales) REFERENCES user(id)
-);
-
--- Gudang (opsional multi-gudang)
-CREATE TABLE gudang (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nama_gudang VARCHAR(100),
-    alamat TEXT
-);
-
--- Dummy Data Awal
-INSERT INTO user (username, password, nama_lengkap, role) VALUES
-('admin', 'admin123', 'Administrator', 'admin'),
-('manajer1', 'manajer123', 'Manager Pusat', 'manajer'),
-('karyawan1', 'karyawan123', 'Karyawan Gudang', 'karyawan'),
-('sales1', 'sales123', 'Sales Lapangan', 'sales');
-
-INSERT INTO barang (nama_barang, satuan, harga_beli, harga_jual, stok_minimum) VALUES
-('Sabun Mandi', 'pcs', 2000, 3000, 50),
-('Susu Kotak', 'pak', 5000, 6500, 30);
+-- Expected Output:
+-- | nama_lengkap     | bulan     | target | realisasi |
+-- |------------------|-----------|--------|-----------|
+-- | Sales Lapangan   | 2025-05   | 150    | 120       |
