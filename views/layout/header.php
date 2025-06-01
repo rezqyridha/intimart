@@ -23,8 +23,8 @@
                 <ul class="main-header-dropdown dropdown-menu pt-0 dropdown-menu-end">
                     <li>
                         <div class="header-navheading border-bottom">
-                            <h6 class="main-notification-title">Jabatan: <?= htmlspecialchars($role) ?></h6>
-                            <p class="main-notification-text mb-0">Username: <?= htmlspecialchars($username) ?></p>
+                            <h6 class="main-notification-title">Jabatan : <?= htmlspecialchars($role) ?></h6>
+                            <p class="main-notification-text mb-0">Username : <?= htmlspecialchars($username) ?></p>
                         </div>
                     </li>
                     <li><a class="dropdown-item d-flex" href="/intimart/logout.php"><i class="fe fe-power me-2"></i>Log Out</a></li>
@@ -43,7 +43,7 @@
     </div>
     <div class="main-sidebar" id="sidebar-scroll">
         <?php
-        if (file_exists($navbarPath)) {
+        if (isset($navbarPath) && file_exists($navbarPath)) {
             include $navbarPath;
         } else {
             echo "<div class='p-3 text-danger'>Navbar tidak tersedia.</div>";

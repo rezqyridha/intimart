@@ -1,40 +1,47 @@
 <?php
-require '../../session_start.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/session_start.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/koneksi.php';
+
+// Validasi role admin
 if ($_SESSION['role'] !== 'admin') {
-    header("Location: ../../index.php?error=unauthorized");
+    header("Location: /intimart/index.php?error=unauthorized");
     exit;
 }
-require '../../koneksi.php';
 
+// Validasi ID
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    header("Location: index.php?msg=invalid");
+    header("Location: /intimart/modules/shared/barang/index.php?msg=invalid");
     exit;
 }
 
-$id = (int)$_GET['id'];
+$id = (int) $_GET['id'];
 
-// Cek apakah barang digunakan di tabel lain (contoh: barang_kadaluarsa)
+// Cek relasi ke tabel lain (misal: barang_kadaluarsa)
 $cek = $conn->prepare("SELECT 1 FROM barang_kadaluarsa WHERE id_barang = ?");
 $cek->bind_param("i", $id);
 $cek->execute();
 $cek->store_result();
 
 if ($cek->num_rows > 0) {
-    // Ada relasi, tidak bisa dihapus
-    header("Location: index.php?msg=fk_blocked");
+    // Barang masih digunakan, tidak boleh dihapus
+    $cek->close();
+    header("Location: /intimart/modules/shared/barang/index.php?msg=fk_blocked");
     exit;
 }
-
 $cek->close();
 
-// Jika aman dihapus
+// Eksekusi penghapusan
 $stmt = $conn->prepare("DELETE FROM barang WHERE id = ?");
 $stmt->bind_param("i", $id);
 
 if ($stmt->execute()) {
-    header("Location: index.php?msg=deleted");
+    $msg = 'deleted';
 } else {
-    header("Location: index.php?msg=failed");
+    $msg = 'failed';
 }
+
 $stmt->close();
 $conn->close();
+
+header("Location: /intimart/modules/shared/barang/index.php?msg=$msg");
+exit;

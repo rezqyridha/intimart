@@ -1,10 +1,16 @@
 <?php
-require '../../session_start.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/session_start.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/koneksi.php';
+
+// Validasi role admin
 if ($_SESSION['role'] !== 'admin') {
-    header("Location: ../../index.php?error=unauthorized");
+    header("Location: /intimart/index.php?error=unauthorized");
     exit;
 }
-require '../../koneksi.php';
+
+$role = $_SESSION['role'];
+$username = $_SESSION['username'] ?? 'User';
+$navbarPath = $_SERVER['DOCUMENT_ROOT'] . "/intimart/modules/$role/navbar.php";
 
 // Proses simpan data
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -12,9 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $satuan = trim($_POST['satuan']);
     $harga_beli = preg_replace('/[^\d]/', '', $_POST['harga_beli']);
     $harga_jual = preg_replace('/[^\d]/', '', $_POST['harga_jual']);
-    $stok_minimum = $_POST['stok_minimum'];
+    $stok_minimum = (int) $_POST['stok_minimum'];
 
-    if ($nama && $satuan && $harga_beli && $harga_jual && $stok_minimum !== "") {
+    if ($nama && $satuan && $harga_beli && $harga_jual && $stok_minimum >= 0) {
         $cek = $conn->prepare("SELECT COUNT(*) FROM barang WHERE nama_barang = ? AND satuan = ?");
         $cek->bind_param("ss", $nama, $satuan);
         $cek->execute();
@@ -25,17 +31,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($ada > 0) {
             header("Location: add.php?msg=duplikat");
             exit;
-        } else {
-            $stmt = $conn->prepare("INSERT INTO barang (nama_barang, satuan, harga_beli, harga_jual, stok_minimum) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssddi", $nama, $satuan, $harga_beli, $harga_jual, $stok_minimum);
-            if ($stmt->execute()) {
-                header("Location: index.php?msg=added");
-                exit;
-            } else {
-                header("Location: add.php?msg=failed");
-                exit;
-            }
         }
+
+        $stmt = $conn->prepare("INSERT INTO barang (nama_barang, satuan, harga_beli, harga_jual, stok_minimum) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssddi", $nama, $satuan, $harga_beli, $harga_jual, $stok_minimum);
+
+        if ($stmt->execute()) {
+            header("Location: index.php?msg=added");
+        } else {
+            header("Location: add.php?msg=failed");
+        }
+        exit;
     } else {
         header("Location: add.php?msg=kosong");
         exit;
@@ -49,27 +55,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Tambah Barang | INTIBOGA</title>
-    <link rel="icon" href="../../assets/images/brand-logos/pt.jpg" type="image/x-icon">
-    <link href="../../assets/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="../../assets/css/styles.min.css" rel="stylesheet">
-    <link href="../../assets/css/icons.css" rel="stylesheet">
-    <link href="../../assets/libs/sweetalert2/sweetalert2.min.css" rel="stylesheet">
+    <link rel="icon" href="/intimart/assets/images/brand-logos/pt.jpg" type="image/x-icon">
+
+    <!-- Styles -->
+    <link href="/intimart/assets/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/intimart/assets/css/styles.min.css" rel="stylesheet">
+    <link href="/intimart/assets/css/icons.css" rel="stylesheet">
+    <link href="/intimart/assets/libs/sweetalert2/sweetalert2.min.css" rel="stylesheet">
 </head>
 
 <body>
     <div class="page">
 
-        <?php include '../layouts/header.php'; ?>
-        <aside class="app-sidebar sticky" id="sidebar">
-            <div class="main-sidebar-header">
-                <a href="dashboard.php" class="header-logo">
-                    <img src="../../assets/images/brand-logos/pt.jpg" class="desktop-logo" alt="logo">
-                </a>
-            </div>
-            <div class="main-sidebar" id="sidebar-scroll">
-                <?php include '../admin/navbar.php'; ?>
-            </div>
-        </aside>
+        <?php include $_SERVER['DOCUMENT_ROOT'] . '/intimart/views/layout/header.php'; ?>
 
         <div class="main-content app-content">
             <div class="container-fluid">
@@ -104,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <input type="number" name="stok_minimum" class="form-control" required min="0">
                             </div>
                             <button type="submit" class="btn btn-primary">Simpan</button>
-                            <a href="index.php" class="btn btn-secondary">Kembali</a>
+                            <a href="/intimart/modules/shared/barang/index.php" class="btn btn-secondary">Kembali</a>
                         </form>
                     </div>
                 </div>
@@ -112,32 +110,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <footer class="footer mt-auto py-3 bg-white text-center">
-            <?php include '../../views/layout/copyright.php'; ?>
+            <?php include $_SERVER['DOCUMENT_ROOT'] . '/intimart/views/layout/footer.php'; ?>
         </footer>
-
     </div>
-
-    <!-- SweetAlert & Notifier -->
-    <script src="../../assets/libs/sweetalert2/sweetalert2.min.js"></script>
-    <script src="../../assets/js/notifier.js"></script>
-
-    <!-- Cleave.js for currency input -->
-    <script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
-    <script>
-        new Cleave('#harga_beli', {
-            numeral: true,
-            numeralThousandsGroupStyle: 'thousand',
-            numeralDecimalMark: '',
-            delimiter: ''
-        });
-
-        new Cleave('#harga_jual', {
-            numeral: true,
-            numeralThousandsGroupStyle: 'thousand',
-            numeralDecimalMark: '',
-            delimiter: ''
-        });
-    </script>
 
 </body>
 
