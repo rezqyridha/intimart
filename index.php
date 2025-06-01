@@ -110,7 +110,7 @@
         <!-- Kanan: Form Login -->
         <div class="login-right">
             <h4 class="mb-4">Masuk ke Akun Anda</h4>
-            <form action="cek-masuk.php" method="POST">
+            <form action="modules/auth/proses_login.php" method="POST">
                 <div class="mb-3">
                     <label class="form-label">Username</label>
                     <div class="input-group">

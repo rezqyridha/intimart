@@ -4,13 +4,7 @@ if ($_SESSION['role'] !== 'admin') {
     header("Location: ../../index.php?error=unauthorized");
     exit;
 }
-require '../../koneksi.php';
-
-// Ambil data barang
-$query = "SELECT * FROM barang ORDER BY nama_barang ASC";
-$result = $conn->query($query);
 ?>
-
 <!DOCTYPE html>
 <html lang="en" dir="ltr" data-nav-layout="vertical" data-theme-mode="light" data-header-styles="light" data-menu-styles="dark" data-toggled="close">
 
@@ -56,14 +50,10 @@ $result = $conn->query($query);
     <!-- Choices Css -->
     <link rel="stylesheet" href="../../assets/libs/choices.js/public/../../assets/styles/choices.min.css">
 
-    <link rel="stylesheet" href="../../assets/libs/sweetalert2/sweetalert2.min.css">
-    <!--
+
     <link rel="stylesheet" href="../../assets/libs/jsvectormap/css/jsvectormap.min.css">
 
     <link rel="stylesheet" href="../../assets/libs/swiper/swiper-bundle.min.css">
--->
-
-
 
 </head>
 
@@ -166,7 +156,7 @@ $result = $conn->query($query);
 
             <!-- Start::main-sidebar -->
             <div class="main-sidebar" id="sidebar-scroll">
-                <?php include '../admin/navbar.php'; ?>
+                <?php include 'navbar.php'; ?>
             </div>
             <!-- End::main-sidebar -->
 
@@ -174,59 +164,51 @@ $result = $conn->query($query);
         <!-- End::app-sidebar -->
 
         <!-- Start::app-content -->
-        <!-- Main Content -->
         <div class="main-content app-content">
             <div class="container-fluid">
 
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="mb-0">Manajemen Data Barang</h4>
-                    <a href="add.php" class="btn btn-primary">+ Tambah Barang</a>
-                </div>
+                <!-- Start::page-header -->
 
-                <div class="card custom-card">
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-hover text-nowrap">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Nama Barang</th>
-                                        <th>Satuan</th>
-                                        <th>Harga Beli</th>
-                                        <th>Harga Jual</th>
-                                        <th>Stok Minimum</th>
-                                        <th width="130">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if ($result->num_rows > 0): ?>
-                                        <?php $no = 1;
-                                        while ($row = $result->fetch_assoc()): ?>
-                                            <tr>
-                                                <td><?= $no++ ?></td>
-                                                <td><?= htmlspecialchars($row['nama_barang']) ?></td>
-                                                <td><?= htmlspecialchars($row['satuan']) ?></td>
-                                                <td>Rp <?= number_format($row['harga_beli'], 0, ',', '.') ?></td>
-                                                <td>Rp <?= number_format($row['harga_jual'], 0, ',', '.') ?></td>
-                                                <td><?= (int)$row['stok_minimum'] ?></td>
-                                                <td>
-                                                    <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-warning">Edit</a>
-                                                    <a href="#" onclick="confirmDelete('delete.php?id=<?= $row['id'] ?>')" class="btn btn-sm btn-danger">Hapus</a>
-                                                </td>
-                                            </tr>
-                                        <?php endwhile; ?>
-                                    <?php else: ?>
-                                        <tr>
-                                            <td colspan="7" class="text-center text-muted">Belum ada data barang.</td>
-                                        </tr>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="d-md-flex d-block align-items-center justify-content-between page-header-breadcrumb">
+                    <div>
+                        <h2 class="main-content-title fs-24 mb-1">Selamat Datang di Aplikasi PT. INTIBOGA MANDIRI</h2>
                     </div>
                 </div>
 
+                <!-- End::page-header -->
+
+                <!-- Start::row-1 -->
+                <div class="row row-sm">
+                    <!-- Content Body -->
+
+                    <!-- Start::row-1 -->
+                    <div class="row row-sm">
+
+                        <div class="col-lg-6 col-xl-6 col-xxl-3 col-md-6 col-12">
+                            <div class="card custom-card">
+                                <div class="card-body pb-3">
+                                    <h5 class="fs-14">Jumlah pengguna</h5>
+                                    <div class="d-flex">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6 col-xl-6 col-xxl-3 col-md-6 col-12">
+                            <div class="card custom-card">
+                                <div class="card-body pb-3">
+                                    <h5 class="fs-14">Total guru</h5>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!--End::row-1 -->
+
             </div>
+            <!-- End::row-1 -->
+
         </div>
     </div>
     <!-- End::app-content -->
@@ -268,11 +250,15 @@ $result = $conn->query($query);
     <!-- Color Picker JS -->
     <script src="../../assets/libs/@simonwep/pickr/pickr.es5.min.js"></script>
 
-    <!--
+
+    <!-- JSVector Maps JS -->
     <script src="../../assets/libs/jsvectormap/js/jsvectormap.min.js"></script>
+
+    <!-- JSVector Maps MapsJS -->
     <script src="../../assets/libs/jsvectormap/maps/world-merc.js"></script>
+
+    <!-- Apex Charts JS -->
     <script src="../../assets/libs/apexcharts/apexcharts.min.js"></script>
-    -->
 
     <!-- Main-Dashboard -->
     <script src="../../assets/js/index.js"></script>
@@ -283,10 +269,6 @@ $result = $conn->query($query);
 
     <!-- Custom JS -->
     <script src="../../assets/js/custom.js"></script>
-
-    <script src="../../assets/libs/sweetalert2/sweetalert2.min.js"></script>
-
-    <script src="../../assets/js/notifier.js"></script>
 
 </body>
 

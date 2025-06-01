@@ -10,42 +10,54 @@
         <!-- Dashboard -->
         <li class="slide__category"><span class="category-name">Dashboard</span></li>
         <li class="slide">
-            <a href="dashboard.php" class="side-menu__item">
-                <span class="shape1"></span><span class="shape2"></span>
+            <a href="/intimart/modules/karyawan/dashboard.php" class="side-menu__item">
                 <i class="ti-home side-menu__icon"></i>
                 <span class="side-menu__label">Dashboard</span>
             </a>
         </li>
 
-        <!-- Manajemen Barang -->
-        <li class="slide__category"><span class="category-name">Gudang</span></li>
-        <li class="slide">
-            <a href="barang_masuk.php" class="side-menu__item">
-                <span class="shape1"></span><span class="shape2"></span>
-                <i class="ti-import side-menu__icon"></i>
-                <span class="side-menu__label">Barang Masuk</span>
+        <!-- Transaksi -->
+        <li class="slide__category"><span class="category-name">Transaksi</span></li>
+        <li class="slide has-sub">
+            <a href="#" class="side-menu__item">
+                <i class="ti-write side-menu__icon"></i>
+                <span class="side-menu__label">Form Transaksi</span>
+                <i class="fe fe-chevron-right side-menu__angle"></i>
             </a>
+            <ul class="slide-menu child1">
+                <li class="slide"><a href="/intimart/modules/shared/barang_masuk/index.php" class="side-menu__item">Barang Masuk</a></li>
+                <li class="slide"><a href="/intimart/modules/karyawan/pengiriman/index.php" class="side-menu__item">Pengiriman</a></li>
+            </ul>
         </li>
-        <li class="slide">
-            <a href="barang_keluar.php" class="side-menu__item">
-                <span class="shape1"></span><span class="shape2"></span>
-                <i class="ti-export side-menu__icon"></i>
-                <span class="side-menu__label">Barang Keluar</span>
+
+        <!-- Manajemen -->
+        <li class="slide__category"><span class="category-name">Manajemen</span></li>
+        <li class="slide has-sub">
+            <a href="#" class="side-menu__item">
+                <i class="ti-settings side-menu__icon"></i>
+                <span class="side-menu__label">Stok</span>
+                <i class="fe fe-chevron-right side-menu__angle"></i>
             </a>
+            <ul class="slide-menu child1">
+                <li class="slide"><a href="/intimart/modules/karyawan/stok/saldo.php" class="side-menu__item">Saldo Stok</a></li>
+                <li class="slide"><a href="/intimart/modules/karyawan/stok/fisik.php" class="side-menu__item">Stok Fisik</a></li>
+                <li class="slide"><a href="/intimart/modules/karyawan/stok/sistem.php" class="side-menu__item">Stok Sistem</a></li>
+            </ul>
         </li>
+
+        <!-- Laporan -->
+        <li class="slide__category"><span class="category-name">Laporan</span></li>
         <li class="slide">
-            <a href="stok.php" class="side-menu__item">
-                <span class="shape1"></span><span class="shape2"></span>
-                <i class="ti-layers-alt side-menu__icon"></i>
-                <span class="side-menu__label">Stok Barang</span>
+            <a href="/intimart/modules/shared/laporan/stok.php" class="side-menu__item">
+                <i class="fa fa-file side-menu__icon"></i>
+                <span class="side-menu__label">Laporan Stok</span>
             </a>
         </li>
 
-        <!-- Logout -->
+        <!-- Akun -->
         <li class="slide__category"><span class="category-name">Akun</span></li>
         <li class="slide">
-            <a href="../../logout.php" class="side-menu__item text-danger">
-                <span class="shape1"></span><span class="shape2"></span>
+            <a href="/intimart/logout.php" class="side-menu__item text-danger">
                 <i class="ti-power-off side-menu__icon"></i>
                 <span class="side-menu__label">Logout</span>
             </a>

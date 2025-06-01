@@ -1,7 +1,7 @@
 <?php
 // cek-masuk.php
 session_start();
-require_once "koneksi.php";
+require_once "../../koneksi.php";
 
 $username = $_POST['username'] ?? '';
 $password = $_POST['password'] ?? '';
@@ -29,16 +29,16 @@ if ($result->num_rows === 1) {
         // Redirect sesuai role
         switch ($user['role']) {
             case 'admin':
-                header("Location: modules/admin/dashboard.php");
+                header("Location: /intimart/modules/admin/dashboard.php");
                 break;
             case 'manajer':
-                header("Location: modules/manajer/dashboard.php");
+                header("Location: /intimart/modules/manajer/dashboard.php");
                 break;
             case 'karyawan':
-                header("Location: modules/karyawan/dashboard.php");
+                header("Location: /intimart/modules/karyawan/dashboard.php");
                 break;
             case 'sales':
-                header("Location: modules/sales/dashboard.php");
+                header("Location: /intimart/modules/sales/dashboard.php");
                 break;
             default:
                 header("Location: index.php?error=unknownrole");
