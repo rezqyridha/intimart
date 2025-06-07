@@ -1,102 +1,121 @@
 <?php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/session_start.php';
-require_once APP_PATH . '/koneksi.php'; // koneksi ke database
+require_once __DIR__ . '/../../config/constants.php';
+require_once CONFIG_PATH . '/koneksi.php';
+require_once AUTH_PATH . '/session.php';
 
 // Cek role admin
 if ($_SESSION['role'] !== 'admin') {
-    header("Location: /intimart/forbidden.php");
+    header("Location: " . AUTH_PATH . "/login.php");
     exit;
 }
 
-// Format tanggal
-$today = date('Y-m-d');         // untuk query SQL
-$todayDisplay = date('d-m-Y');  // untuk tampilan UI
+// Data Statistik
+$today = date('Y-m-d');
+$todayDisplay = date('d-m-Y');
 
-// Statistik: jumlah user
-$resultUser = $conn->query("SELECT COUNT(*) AS total_user FROM user");
-$totalUser = $resultUser->fetch_assoc()['total_user'] ?? 0;
-
-// Statistik: total barang
-$resultBarang = $conn->query("SELECT COUNT(*) AS total_barang FROM barang");
-$totalBarang = $resultBarang->fetch_assoc()['total_barang'] ?? 0;
-
-// Statistik: transaksi hari ini
-$resultJual = $conn->query("SELECT COUNT(*) AS total_jual FROM penjualan WHERE DATE(tanggal) = '$today'");
-$totalJual = $resultJual->fetch_assoc()['total_jual'] ?? 0;
-
-// Statistik: barang masuk hari ini
-$resultMasuk = $conn->query("SELECT COUNT(*) AS total_masuk FROM barang_masuk WHERE DATE(tanggal) = '$today'");
-$totalMasuk = $resultMasuk->fetch_assoc()['total_masuk'] ?? 0;
-
-require_once APP_PATH . '/views/layout/head.php';
-require_once APP_PATH . '/views/layout/header.php';
+$totalUser   = $koneksi->query("SELECT COUNT(*) AS total FROM user")->fetch_assoc()['total'] ?? 0;
+$totalBarang = $koneksi->query("SELECT COUNT(*) AS total FROM barang")->fetch_assoc()['total'] ?? 0;
+$totalJual   = $koneksi->query("SELECT COUNT(*) AS total FROM penjualan WHERE DATE(tanggal) = '$today'")->fetch_assoc()['total'] ?? 0;
+$totalMasuk  = $koneksi->query("SELECT COUNT(*) AS total FROM barang_masuk WHERE DATE(tanggal) = '$today'")->fetch_assoc()['total'] ?? 0;
 ?>
 
-<!-- Start::app-content -->
+<?php
+require_once LAYOUTS_PATH . '/head.php';
+require_once LAYOUTS_PATH . '/topbar.php';
+require_once LAYOUTS_PATH . '/sidebar.php';
+?>
+
+<!-- Start::Content -->
 <div class="main-content app-content">
     <div class="container-fluid">
 
-        <!-- Start::page-header -->
-        <div class="d-md-flex d-block align-items-center justify-content-between page-header-breadcrumb">
+        <!-- Page Header -->
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h2 class="main-content-title fs-24 mb-1">Selamat Datang di Aplikasi PT. INTIBOGA MANDIRI</h2>
-                <p class="text-muted mb-0">Dashboard Administrator</p>
+                <h4 class="fw-bold mt-4 mb-1">Selamat Datang, <strong><?= $_SESSION['nama_lengkap'] ?></strong></h4>
+                <p class="text-muted mb-0">PT. INTIBOGA MANDIRI – Dashboard <?= ucfirst($_SESSION['role']) ?> – <?= $todayDisplay ?></p>
             </div>
         </div>
-        <!-- End::page-header -->
 
-        <!-- Start::row-statistik -->
-        <div class="row row-sm">
+
+
+        <!-- Statistik Row -->
+        <div class="row g-3">
 
             <!-- Box Jumlah Pengguna -->
-            <div class="col-lg-6 col-xl-3 col-md-6 col-12">
-                <div class="card custom-card">
-                    <div class="card-body pb-3">
-                        <h5 class="fs-14 mb-2">Jumlah Pengguna</h5>
-                        <h3 class="fw-bold"><?= $totalUser ?></h3>
-                        <span class="text-muted">Data dari tabel user</span>
+            <div class="col-lg-3 col-md-6">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <i class="bi bi-people-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Jumlah Pengguna</h6>
+                            <h4 class="fw-bold mb-0"><?= $totalUser ?></h4>
+                            <small class="text-muted">User terdaftar</small>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Box Total Barang -->
-            <div class="col-lg-6 col-xl-3 col-md-6 col-12">
-                <div class="card custom-card">
-                    <div class="card-body pb-3">
-                        <h5 class="fs-14 mb-2">Total Barang</h5>
-                        <h3 class="fw-bold"><?= $totalBarang ?></h3>
-                        <span class="text-muted">Data dari tabel barang</span>
+            <div class="col-lg-3 col-md-6">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-success text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <i class="bi bi-box-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Total Barang</h6>
+                            <h4 class="fw-bold mb-0"><?= $totalBarang ?></h4>
+                            <small class="text-muted">Data barang masuk</small>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Box Transaksi Hari Ini -->
-            <div class="col-lg-6 col-xl-3 col-md-6 col-12">
-                <div class="card custom-card">
-                    <div class="card-body pb-3">
-                        <h5 class="fs-14 mb-2">Transaksi Hari Ini</h5>
-                        <h3 class="fw-bold"><?= $totalJual ?></h3>
-                        <span class="text-muted">Penjualan ditanggal <?= $todayDisplay ?></span>
+            <!-- Box Transaksi Hari ini -->
+            <div class="col-lg-3 col-md-6">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-warning text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <i class="bi bi-cart-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Transaksi Hari Ini</h6>
+                            <h4 class="fw-bold mb-0"><?= $totalJual ?></h4>
+                            <small class="text-muted">Tanggal <?= $todayDisplay ?></small>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Box Barang Masuk Hari Ini -->
-            <div class="col-lg-6 col-xl-3 col-md-6 col-12">
-                <div class="card custom-card">
-                    <div class="card-body pb-3">
-                        <h5 class="fs-14 mb-2">Barang Masuk Hari Ini</h5>
-                        <h3 class="fw-bold"><?= $totalMasuk ?></h3>
-                        <span class="text-muted">Stok masuk ditanggal <?= $todayDisplay ?></span>
+            <!-- Box Barang Masuk Hari ini -->
+            <div class="col-lg-3 col-md-6">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-info text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <i class="bi bi-box-arrow-in-down fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Barang Masuk Hari Ini</h6>
+                            <h4 class="fw-bold mb-0"><?= $totalMasuk ?></h4>
+                            <small class="text-muted">Tanggal <?= $todayDisplay ?></small>
+                        </div>
                     </div>
                 </div>
             </div>
 
-        </div>
-        <!-- End::row-statistik -->
+        </div> <!-- End row -->
 
     </div>
+
 </div>
 <!-- End::app-content -->
-
-<?php require_once APP_PATH . '/views/layout/footer.php'; ?>
+<?php
+require_once LAYOUTS_PATH . '/footer.php';
+require_once LAYOUTS_PATH . '/scripts.php';
+?>
+</div>
+<!-- End::Content -->

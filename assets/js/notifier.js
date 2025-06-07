@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
         duplikat: {
             icon: "warning",
             title: "Data Duplikat",
-            text: "Nama dan satuan barang sudah digunakan.",
+            text: "Data sudah digunakan.",
         },
         invalid: {
             icon: "warning",
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
         fk_blocked: {
             icon: "error",
             title: "Tidak Bisa Dihapus",
-            text: "Data terkait modul lain, tidak dapat dihapus.",
+            text: "User terkait data lain seperti pegawai, dokumen, atau notifikasi.",
         },
         unauthorized: {
             icon: "error",

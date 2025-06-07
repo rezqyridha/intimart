@@ -1,158 +1,128 @@
 <?php
-require '../../session_start.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/config/constants.php';
+require_once CONFIG_PATH . '/koneksi.php';
+require_once AUTH_PATH . '/session.php';
+
+// Validasi role
 if ($_SESSION['role'] !== 'sales') {
-    header("Location: ../../index.php?error=unauthorized");
+    header("Location: " . BASE_URL . "/forbidden.php");
     exit;
 }
-require '../../koneksi.php';
 
-// Ambil data user
-$id_sales = $_SESSION['id'] ?? 0;
+$today = date('Y-m-d');
+$todayDisplay = date('d-m-Y');
+$nama = $_SESSION['nama_lengkap'] ?? 'User';
 
-// Query metrik harian
-$q1 = $conn->query("SELECT COUNT(*) AS total_transaksi FROM penjualan WHERE id_sales = $id_sales AND tanggal = CURDATE()");
-$transaksi = $q1->fetch_assoc()['total_transaksi'] ?? 0;
+// Penjualan hari ini
+$qJual = $koneksi->query("SELECT COUNT(*) AS total_jual FROM penjualan WHERE DATE(tanggal) = '$today'");
+$totalJual = $qJual->fetch_assoc()['total_jual'] ?? 0;
 
-$q2 = $conn->query("SELECT COUNT(*) AS total_retur FROM retur r JOIN penjualan p ON r.id_penjualan = p.id WHERE p.id_sales = $id_sales AND r.tanggal = CURDATE()");
-$retur = $q2->fetch_assoc()['total_retur'] ?? 0;
+// Produk tidak laku
+$qTidakLaku = $koneksi->query("SELECT COUNT(*) AS total_tidak_laku FROM produk_tidak_laku WHERE status IN ('diperiksa', 'tindaklanjut')");
+$totalTidakLaku = $qTidakLaku->fetch_assoc()['total_tidak_laku'] ?? 0;
 
-$q3 = $conn->query("SELECT SUM(total) AS total_hari_ini FROM penjualan WHERE id_sales = $id_sales AND tanggal = CURDATE()");
-$penjualan = $q3->fetch_assoc()['total_hari_ini'] ?? 0;
+// Target sales (misal: target bulanan)
+$qTarget = $koneksi->query("SELECT COUNT(*) AS target_sales FROM target_sales");
+$totalTarget = $qTarget->fetch_assoc()['target_sales'] ?? 0;
 
-$username = $_SESSION['username'] ?? 'Sales';
-$role = $_SESSION['role'] ?? 'sales';
+// Pengiriman aktif
+$qKirim = $koneksi->query("SELECT COUNT(*) AS total_kirim FROM pengiriman WHERE status_pengiriman = 'dikirim'");
+$totalKirim = $qKirim->fetch_assoc()['total_kirim'] ?? 0;
+
+require_once LAYOUTS_PATH . '/head.php';
+require_once LAYOUTS_PATH . '/header.php';
+require_once LAYOUTS_PATH . '/topbar.php';
+require_once LAYOUTS_PATH . '/sidebar.php';
 ?>
-<!DOCTYPE html>
-<html lang="en" dir="ltr" data-nav-layout="vertical" data-theme-mode="light" data-header-styles="light" data-menu-styles="dark" data-toggled="close">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Dashboard Sales | PT. INTIBOGA MANDIRI</title>
-    <link rel="icon" href="../../assets/images/brand-logos/pt.jpg" type="image/x-icon">
-    <link id="style" href="../../assets/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="../../assets/css/styles.min.css" rel="stylesheet">
-    <link href="../../assets/css/icons.css" rel="stylesheet">
-    <link href="../../assets/libs/node-waves/waves.min.css" rel="stylesheet">
-    <link href="../../assets/libs/simplebar/simplebar.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../../assets/libs/flatpickr/flatpickr.min.css">
-    <link rel="stylesheet" href="../../assets/libs/@simonwep/pickr/themes/nano.min.css">
-    <link rel="stylesheet" href="../../assets/libs/choices.js/public/../../assets/styles/choices.min.css">
-    <link rel="stylesheet" href="../../assets/libs/jsvectormap/css/jsvectormap.min.css">
-    <link rel="stylesheet" href="../../assets/libs/swiper/swiper-bundle.min.css">
-</head>
+<!-- Start::app-content -->
+<div class="main-content app-content">
+    <div class="container-fluid">
 
-<body>
-    <div id="loader"><img src="../../assets/images/media/media-79.svg" alt=""></div>
-    <div class="page">
-        <header class="app-header">
-            <div class="main-header-container container-fluid">
-                <div class="header-content-left">
-                    <div class="header-element">
-                        <div class="horizontal-logo">
-                            <a href="dashboard.php" class="header-logo">
-                                <img src="../../assets/images/brand-logos/pt.jpg" alt="logo" class="desktop-logo">
-                                <img src="../../assets/images/brand-logos/pt.jpg" alt="logo" class="desktop-dark" style="height: 50px;">
-                            </a>
-                        </div>
-                    </div>
-                    <div class="header-element">
-                        <a class="sidemenu-toggle header-link animated-arrow hor-toggle horizontal-navtoggle" data-bs-toggle="sidebar" href="#"><span></span></a>
-                    </div>
-                </div>
-                <div class="header-content-right">
-                    <div class="header-element">
-                        <a href="#" class="header-link dropdown-toggle" id="mainHeaderProfile" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="d-flex align-items-center">
-                                <div class="header-link-icon">
-                                    <img src="../../assets/images/faces/1.jpg" alt="img" width="32" height="32" class="rounded-circle">
-                                </div>
-                            </div>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="mainHeaderProfile">
-                            <li>
-                                <div class="header-navheading border-bottom">
-                                    <h6 class="main-notification-title">Jabatan : <?= htmlspecialchars($role) ?></h6>
-                                    <p class="main-notification-text mb-0">Username : <?= htmlspecialchars($username) ?></p>
-                                </div>
-                            </li>
-                            <li><a class="dropdown-item d-flex" href="../../logout.php"><i class="fe fe-power me-2"></i>Log Out</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <aside class="app-sidebar sticky" id="sidebar">
-            <div class="main-sidebar-header">
-                <a href="dashboard.php" class="header-logo">
-                    <img src="../../assets/images/brand-logos/pt.jpg" class="desktop-logo" alt="logo">
-                </a>
-            </div>
-            <div class="main-sidebar" id="sidebar-scroll">
-                <?php include 'navbar.php'; ?>
-            </div>
-        </aside>
-
-        <div class="main-content app-content">
-            <div class="container-fluid">
-                <div class="d-md-flex d-block align-items-center justify-content-between page-header-breadcrumb">
-                    <div>
-                        <h2 class="main-content-title fs-24 mb-1">Selamat Datang di Aplikasi PT. INTIBOGA MANDIRI</h2>
-                    </div>
-                </div>
-
-                <div class="row row-sm">
-                    <div class="col-lg-4 col-md-6">
-                        <div class="card custom-card">
-                            <div class="card-body pb-3">
-                                <h5 class="fs-14">Transaksi Hari Ini</h5>
-                                <h3 class="fw-bold mb-0"><?= $transaksi ?></h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-6">
-                        <div class="card custom-card">
-                            <div class="card-body pb-3">
-                                <h5 class="fs-14">Retur Hari Ini</h5>
-                                <h3 class="fw-bold mb-0"><?= $retur ?></h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-12">
-                        <div class="card custom-card">
-                            <div class="card-body pb-3">
-                                <h5 class="fs-14">Total Penjualan</h5>
-                                <h3 class="fw-bold mb-0">Rp <?= number_format($penjualan, 0, ',', '.') ?></h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold mt-4 mb-1">Selamat Datang, <strong><?= $_SESSION['nama_lengkap'] ?></strong></h4>
+                <p class="text-muted mb-0">PT. INTIBOGA MANDIRI – Dashboard <?= ucfirst($_SESSION['role']) ?> – <?= $todayDisplay ?></p>
             </div>
         </div>
 
-        <footer class="footer mt-auto py-3 bg-white text-center">
-            <?php include '../../views/layout/copyright.php'; ?>
-        </footer>
+
+        <!-- Statistik Kinerja -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-4 mt-2">
+
+            <!-- Penjualan Hari Ini -->
+            <div class="col">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <i class="bi bi-cart-check fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Penjualan Hari Ini</h6>
+                            <h4 class="fw-bold mb-0"><?= $totalJual ?></h4>
+                            <small class="text-muted">Transaksi per <?= $todayDisplay ?></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produk Tidak Laku -->
+            <div class="col">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-danger text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <i class="bi bi-archive fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Produk Tidak Laku</h6>
+                            <h4 class="fw-bold mb-0"><?= $totalTidakLaku ?></h4>
+                            <small class="text-muted">Butuh evaluasi atau promo</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Target Sales -->
+            <div class="col">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-warning text-dark rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <i class="bi bi-graph-up fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Target Aktif</h6>
+                            <h4 class="fw-bold mb-0"><?= $totalTarget ?></h4>
+                            <small class="text-muted">Target performa penjualan</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pengiriman Aktif -->
+            <div class="col">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-info text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <i class="bi bi-truck fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Pengiriman Berjalan</h6>
+                            <h4 class="fw-bold mb-0"><?= $totalKirim ?></h4>
+                            <small class="text-muted">Dalam proses pengantaran</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- End::statistik -->
+
     </div>
+</div>
+<!-- End::app-content -->
 
-    <div class="scrollToTop"><span class="arrow"><i class="fe fe-arrow-up"></i></span></div>
-    <div id="responsive-overlay"></div>
-
-    <script src="../../assets/libs/@popperjs/core/umd/popper.min.js"></script>
-    <script src="../../assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="../../assets/js/defaultmenu.min.js"></script>
-    <script src="../../assets/libs/node-waves/waves.min.js"></script>
-    <script src="../../assets/libs/simplebar/simplebar.min.js"></script>
-    <script src="../../assets/js/simplebar.js"></script>
-    <script src="../../assets/libs/@simonwep/pickr/pickr.es5.min.js"></script>
-    <script src="../../assets/libs/jsvectormap/js/jsvectormap.min.js"></script>
-    <script src="../../assets/libs/jsvectormap/maps/world-merc.js"></script>
-    <script src="../../assets/libs/apexcharts/apexcharts.min.js"></script>
-    <script src="../../assets/js/index.js"></script>
-    <script src="../../assets/js/custom-switcher.min.js"></script>
-    <script src="../../assets/js/custom.js"></script>
-</body>
-
-</html>
+<?php
+require_once LAYOUTS_PATH . '/footer.php';
+require_once LAYOUTS_PATH . '/scripts.php';
+?>

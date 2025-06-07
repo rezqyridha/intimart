@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <title>Login - <?= APP_NAME ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="<?= ASSETS_URL ?>/images/desa/Logo Desa.png" type="image/x-icon">
+    <link rel="icon" href="<?= ASSETS_URL ?>/images/logo.png" type="image/x-icon">
 
     <link href="<?= ASSETS_URL ?>/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="<?= ASSETS_URL ?>/css/icons.css" rel="stylesheet">
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="login-wrapper">
         <!-- Kiri: Branding -->
         <div class="login-left text-center">
-            <img src="<?= ASSETS_URL ?>/images/desa/logo.png" alt="Logo PT Intiboga Mandiri">
+            <img src="<?= ASSETS_URL ?>/images/logo.png" alt="Logo PT Intiboga Mandiri">
             <h2 class="mt-3 fw-bold">PT Intiboga Mandiri</h2>
             <p class="mt-2 px-3">
                 Selamat datang di <strong>Aplikasi Manajemen Penjualan</strong>,<br>
