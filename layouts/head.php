@@ -1,23 +1,3 @@
-<?php
-/*if (!isset($_SESSION)) session_start();
-$role = $_SESSION['role'] ?? 'guest';
-$username = $_SESSION['username'] ?? 'User';
-$navbarPath = APP_PATH . "/modules/$role/navbar.php";
-*/
-?>
-
-<?php
-if (!isset($_SESSION)) session_start();
-if (!defined('APP_PATH')) {
-    define('APP_PATH', $_SERVER['DOCUMENT_ROOT'] . '/intimart');
-}
-
-$role = $_SESSION['role'] ?? 'guest';
-$username = $_SESSION['username'] ?? 'Pengguna';
-$navbarPath = APP_PATH . "/modules/$role/navbar.php";
-?>
-
-
 <!DOCTYPE html>
 <html lang="id" dir="ltr" data-nav-layout="vertical" data-theme-mode="light" data-header-styles="light" data-menu-styles="dark" data-toggled="close">
 
