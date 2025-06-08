@@ -26,6 +26,14 @@ require_once CONFIG_PATH . '/constants.php';
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/libs/swiper/swiper-bundle.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.min.css">
+
+
     <!-- JS awal (optional preload) -->
     <script src="<?= ASSETS_URL ?>/libs/choices.js/public/assets/scripts/choices.min.js"></script>
     <script src="<?= ASSETS_URL ?>/js/main.js"></script>

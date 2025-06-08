@@ -2,6 +2,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
     const msg = params.get("msg");
+    const obj = params.get("obj");
 
     const notifications = {
         success: {
@@ -16,17 +17,17 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         updated: {
             icon: "success",
-            title: "Berhasil Diperbarui",
+            title: "Diperbarui",
             text: "Data berhasil diperbarui.",
         },
         deleted: {
             icon: "success",
-            title: "Data Terhapus",
+            title: "Terhapus",
             text: "Data berhasil dihapus.",
         },
         error: {
             icon: "error",
-            title: "Gagal",
+            title: "Kesalahan",
             text: "Terjadi kesalahan saat memproses.",
         },
         failed: {
@@ -37,37 +38,37 @@ document.addEventListener("DOMContentLoaded", () => {
         kosong: {
             icon: "warning",
             title: "Form Tidak Lengkap",
-            text: "Semua field wajib diisi.",
+            text: getKosongText(obj),
         },
         duplicate: {
             icon: "warning",
             title: "Duplikat Data",
-            text: "Data yang dimasukkan sudah ada.",
+            text: getDuplicateText(obj),
         },
         duplikat: {
             icon: "warning",
             title: "Data Duplikat",
-            text: "Data sudah digunakan.",
+            text: getDuplicateText(obj),
         },
         invalid: {
             icon: "warning",
-            title: "Permintaan Tidak Valid",
-            text: "Data tidak ditemukan atau parameter salah.",
+            title: "Tidak Valid",
+            text: getInvalidText(obj),
         },
         fk_blocked: {
             icon: "error",
             title: "Tidak Bisa Dihapus",
-            text: "User terkait data lain seperti pegawai, dokumen, atau notifikasi.",
+            text: getFKBlockedText(obj),
         },
         unauthorized: {
             icon: "error",
             title: "Akses Ditolak",
-            text: "Anda tidak memiliki izin mengakses halaman ini.",
+            text: getUnauthorizedText(obj),
         },
         nochange: {
             icon: "info",
             title: "Tidak Ada Perubahan",
-            text: "Data tetap sama, tidak ada yang diperbarui.",
+            text: getNochangeText(obj),
         },
     };
 
@@ -78,14 +79,124 @@ document.addEventListener("DOMContentLoaded", () => {
             showConfirmButton: false,
         });
 
-        // Bersihkan parameter ?msg dari URL setelah tampil
         if (window.history.replaceState) {
             window.history.replaceState(null, null, window.location.pathname);
         }
     }
 });
 
-// Fungsi konfirmasi hapus
+// === Global handler untuk seluruh modul Intimart ===
+
+function getDuplicateText(obj) {
+    const map = {
+        barang: "Barang sudah terdaftar.",
+        pegawai: "Pegawai sudah ada dalam sistem.",
+        user: "Username sudah digunakan.",
+        pelanggan: "Pelanggan sudah terdaftar.",
+        gudang: "Gudang sudah ada.",
+        produk: "Produk sudah ada.",
+        supplier: "Supplier sudah terdaftar.",
+        sales: "Sales sudah ada.",
+        penjualan: "Penjualan sudah ada.",
+        pengiriman: "Data pengiriman sudah ada.",
+        retur: "Data retur sudah ada.",
+        pembayaran: "Data pembayaran sudah ada.",
+        laporan: "Laporan sudah pernah dibuat.",
+        notifikasi: "Notifikasi serupa sudah dikirim.",
+        target: "Target sudah ditetapkan sebelumnya.",
+        sppd: "Data SPPD sudah ada.",
+        persetujuan: "Persetujuan sudah tercatat.",
+        spt: "SPT sudah dibuat sebelumnya.",
+        evaluasi: "Evaluasi sudah pernah dilakukan.",
+    };
+    return map[obj] || "Data yang Anda masukkan sudah ada.";
+}
+
+function getKosongText(obj) {
+    const map = {
+        barang: "Semua field barang wajib diisi.",
+        pegawai: "Data pegawai harus diisi lengkap.",
+        user: "Username dan password wajib diisi.",
+        gudang: "Data gudang tidak boleh kosong.",
+        penjualan: "Field penjualan harus lengkap.",
+        pengiriman: "Data pengiriman belum lengkap.",
+        retur: "Mohon isi seluruh field retur.",
+        pembayaran: "Lengkapi detail pembayaran.",
+        pelanggan: "Data pelanggan wajib diisi.",
+        supplier: "Field supplier tidak boleh kosong.",
+        sppd: "Lengkapi form SPPD terlebih dahulu.",
+        persetujuan: "Data persetujuan belum lengkap.",
+        spt: "Isi form SPT dengan benar.",
+        evaluasi: "Field evaluasi tidak boleh kosong.",
+    };
+    return map[obj] || "Harap lengkapi semua field yang dibutuhkan.";
+}
+
+function getInvalidText(obj) {
+    const map = {
+        barang: "Barang tidak ditemukan.",
+        pegawai: "Pegawai tidak ditemukan.",
+        user: "User tidak ditemukan.",
+        pelanggan: "Data pelanggan tidak valid.",
+        gudang: "Gudang tidak valid atau tidak ditemukan.",
+        penjualan: "Penjualan tidak valid.",
+        pengiriman: "Pengiriman tidak ditemukan.",
+        retur: "Retur tidak ditemukan.",
+        pembayaran: "Pembayaran tidak ditemukan.",
+        sppd: "Data SPPD tidak valid.",
+        persetujuan: "Data persetujuan tidak valid.",
+        spt: "SPT tidak ditemukan.",
+        evaluasi: "Evaluasi tidak ditemukan.",
+    };
+    return map[obj] || "Data tidak valid atau tidak ditemukan.";
+}
+
+function getFKBlockedText(obj) {
+    const map = {
+        barang: "Barang tidak dapat dihapus karena digunakan di modul lain seperti stok, penjualan, atau pengiriman.",
+        pegawai:
+            "Pegawai tidak dapat dihapus karena terhubung dengan pengajuan atau evaluasi.",
+        user: "User tidak dapat dihapus karena terhubung dengan akun login aktif.",
+        gudang: "Gudang tidak dapat dihapus karena digunakan di distribusi atau stok.",
+        pelanggan: "Pelanggan memiliki riwayat transaksi.",
+        supplier: "Supplier sudah digunakan di pembelian.",
+        penjualan: "Penjualan sudah tercatat di laporan.",
+        pengiriman: "Pengiriman sudah digunakan.",
+        sppd: "SPPD tidak dapat dihapus karena proses sudah berjalan.",
+        persetujuan:
+            "Persetujuan tidak dapat dihapus karena terikat dokumen resmi.",
+        spt: "SPT tidak dapat dihapus karena digunakan.",
+    };
+    return (
+        map[obj] || "Data tidak dapat dihapus karena digunakan di modul lain."
+    );
+}
+
+function getUnauthorizedText(obj) {
+    const map = {
+        barang: "Anda tidak memiliki hak akses untuk mengelola data barang.",
+        pegawai: "Anda tidak diizinkan mengakses data pegawai.",
+        user: "Anda tidak dapat mengakses manajemen user.",
+        laporan: "Anda tidak memiliki izin melihat laporan ini.",
+        spt: "Hanya role tertentu yang dapat mengelola SPT.",
+        sppd: "Anda tidak dapat mengelola SPPD.",
+    };
+    return map[obj] || "Anda tidak memiliki izin untuk mengakses halaman ini.";
+}
+
+function getNochangeText(obj) {
+    const map = {
+        barang: "Tidak ada perubahan pada data barang.",
+        pegawai: "Data pegawai tidak mengalami perubahan.",
+        user: "Data user tidak berubah.",
+        pelanggan: "Data pelanggan tetap sama.",
+        sppd: "Tidak ada perubahan pada SPPD.",
+        spt: "Tidak ada perubahan pada SPT.",
+    };
+    return map[obj] || "Tidak ada perubahan yang dilakukan.";
+}
+
+// 🔁 Konfirmasi Hapus
 function confirmDelete(url) {
     Swal.fire({
         title: "Yakin ingin menghapus?",

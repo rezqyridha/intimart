@@ -1,25 +1,38 @@
 <?php
-include '../session-start.php';
-include '../config.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/config/constants.php';
+require_once AUTH_PATH . '/session.php';
+require_once CONFIG_PATH . '/koneksi.php';
 
-// Periksa apakah `id_pegawai` telah diterima untuk dihapus
-if (isset($_GET['id_penjualan']) && is_numeric($_GET['id_penjualan'])) {
-    $id_penjualan = intval($_GET['id_penjualan']);
-
-    // Siapkan query untuk menghapus data
-    $stmt = $conn->prepare("DELETE FROM penjualan WHERE id_penjualan = ?");
-    $stmt->bind_param("i", $id_penjualan);
-
-    // Eksekusi query
-    if ($stmt->execute()) {
-        echo "<script>alert('Data berhasil dihapus.'); window.location.href='data_barang_keluar.php';</script>";
-    } else {
-        echo "<script>alert('Terjadi kesalahan saat menghapus data: " . $stmt->error . "'); window.location.href='data_barang_keluar.php';</script>";
-    }
-
-    $stmt->close();
-} else {
-    echo "<script>alert('ID tidak ditemukan atau tidak valid.'); window.location.href='data_barang_keluar.php';</script>";
+// Hanya admin yang diizinkan menghapus
+if ($_SESSION['role'] !== 'admin') {
+    header("Location: index.php?msg=unauthorized&obj=barang_keluar");
+    exit;
 }
 
-$conn->close();
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if ($id <= 0) {
+    header("Location: index.php?msg=invalid&obj=barang_keluar");
+    exit;
+}
+
+// Cek data ada atau tidak
+$cek = $koneksi->prepare("SELECT COUNT(*) FROM barang_keluar WHERE id = ?");
+$cek->bind_param("i", $id);
+$cek->execute();
+$cek->bind_result($ada);
+$cek->fetch();
+$cek->close();
+
+if ($ada == 0) {
+    header("Location: index.php?msg=invalid&obj=barang_keluar");
+    exit;
+}
+
+// Hapus data
+$stmt = $koneksi->prepare("DELETE FROM barang_keluar WHERE id = ?");
+$stmt->bind_param("i", $id);
+$stmt->execute() ?
+    header("Location: index.php?msg=deleted&obj=barang_keluar") :
+    header("Location: index.php?msg=failed&obj=barang_keluar");
+$stmt->close();
+exit;

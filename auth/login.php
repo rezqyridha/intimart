@@ -37,7 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Gunakan password_verify jika sudah hash
                 if ($password === $user['password']) {
                     $_SESSION['login']         = true;
-                    $_SESSION['user_id']       = $user['id'];
+                    $_SESSION['id_user']       = $user['id'];             // ✅ fix utamanya di sini
+                    $_SESSION['user_id']       = $user['id'];             // (opsional, boleh tetap)
                     $_SESSION['username']      = $user['username'];
                     $_SESSION['nama_lengkap']  = $user['nama_lengkap'];
                     $_SESSION['role']          = $user['role'];

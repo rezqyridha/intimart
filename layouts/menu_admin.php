@@ -40,11 +40,13 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <i class="fe fe-chevron-right side-menu__angle"></i>
             </a>
             <ul class="slide-menu child2">
-                <li><a href="<?= BASE_URL ?>/modules/shared/barang/index.php" class="side-menu__item">Data Barang</a></li>
+                <li>
+                    <a href="<?= BASE_URL ?>/modules/shared/barang/index.php" class="side-menu__item">Data Barang</a>
+                </li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/barang_masuk/index.php" class="side-menu__item">Barang Masuk</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/barang_keluar/index.php" class="side-menu__item">Barang Keluar</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/karyawan/stok/fisik.php" class="side-menu__item">Stok Fisik</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/karyawan/stok/sistem.php" class="side-menu__item">Stok Sistem</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/stok/index.php" class="side-menu__item">Stok Sistem</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/stok_fisik/index.php" class="side-menu__item">Stok Fisik</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/kadaluarsa/index.php" class="side-menu__item">Kadaluarsa</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/admin/restok/index.php" class="side-menu__item">Permintaan Restok</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/produk_tidak_laku/index.php" class="side-menu__item">Produk Tidak Laku</a></li>

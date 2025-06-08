@@ -1,47 +1,47 @@
 <?php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/session_start.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/koneksi.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/config/constants.php';
+require_once AUTH_PATH . '/session.php';
+require_once CONFIG_PATH . '/koneksi.php';
 
-// Validasi role admin
 if ($_SESSION['role'] !== 'admin') {
-    header("Location: /intimart/index.php?error=unauthorized");
+    header("Location: index.php?msg=unauthorized&obj=barang");
     exit;
 }
 
-// Validasi ID
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    header("Location: /intimart/modules/shared/barang/index.php?msg=invalid");
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if ($id <= 0) {
+    header("Location: index.php?msg=invalid&obj=barang");
     exit;
 }
 
-$id = (int) $_GET['id'];
+$cekRelasi = [
+    'barang_masuk'        => 'SELECT COUNT(*) FROM barang_masuk WHERE id_barang = ?',
+    'barang_keluar'       => 'SELECT COUNT(*) FROM barang_keluar WHERE id_barang = ?',
+    'barang_kadaluarsa'   => 'SELECT COUNT(*) FROM barang_kadaluarsa WHERE id_barang = ?',
+    'detail_restok'       => 'SELECT COUNT(*) FROM detail_restok WHERE id_barang = ?',
+    'penjualan'           => 'SELECT COUNT(*) FROM penjualan WHERE id_barang = ?',
+    'pengiriman'          => 'SELECT COUNT(*) FROM pengiriman WHERE id_barang = ?',
+    'pemesanan'           => 'SELECT COUNT(*) FROM pemesanan WHERE id_barang = ?',
+    'stok'                => 'SELECT COUNT(*) FROM stok WHERE id_barang = ?'
+];
 
-// Cek relasi ke tabel lain (misal: barang_kadaluarsa)
-$cek = $conn->prepare("SELECT 1 FROM barang_kadaluarsa WHERE id_barang = ?");
-$cek->bind_param("i", $id);
-$cek->execute();
-$cek->store_result();
+foreach ($cekRelasi as $query) {
+    $stmt = $koneksi->prepare($query);
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $stmt->bind_result($total);
+    $stmt->fetch();
+    $stmt->close();
 
-if ($cek->num_rows > 0) {
-    // Barang masih digunakan, tidak boleh dihapus
-    $cek->close();
-    header("Location: /intimart/modules/shared/barang/index.php?msg=fk_blocked");
-    exit;
+    if ($total > 0) {
+        header("Location: index.php?msg=fk_blocked&obj=barang");
+        exit;
+    }
 }
-$cek->close();
 
-// Eksekusi penghapusan
-$stmt = $conn->prepare("DELETE FROM barang WHERE id = ?");
+$stmt = $koneksi->prepare("DELETE FROM barang WHERE id = ?");
 $stmt->bind_param("i", $id);
-
-if ($stmt->execute()) {
-    $msg = 'deleted';
-} else {
-    $msg = 'failed';
-}
-
+$stmt->execute() ?
+    header("Location: index.php?msg=deleted&obj=barang") :
+    header("Location: index.php?msg=failed&obj=barang");
 $stmt->close();
-$conn->close();
-
-header("Location: /intimart/modules/shared/barang/index.php?msg=$msg");
-exit;

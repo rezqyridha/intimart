@@ -4,17 +4,18 @@ require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
 $role = $_SESSION['role'];
-
 if (!in_array($role, ['admin', 'karyawan'])) {
     header("Location: " . BASE_URL . "/notfound.php");
     exit;
 }
 
-$query = "SELECT bm.*, b.nama_barang, b.satuan, u.nama_lengkap AS user_input
-          FROM barang_masuk bm
-          JOIN barang b ON bm.id_barang = b.id
-          LEFT JOIN user u ON bm.id_user = u.id
-          ORDER BY bm.tanggal DESC";
+$query = "
+    SELECT sf.*, b.nama_barang, b.satuan, u.nama_lengkap AS user_input
+    FROM stok_fisik sf
+    JOIN barang b ON sf.id_barang = b.id
+    LEFT JOIN user u ON sf.id_user = u.id
+    ORDER BY sf.tanggal DESC
+";
 $result = $koneksi->query($query);
 
 require_once LAYOUTS_PATH . '/head.php';
@@ -27,7 +28,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
     <div class="container-fluid">
         <div class="card custom-card shadow-sm mt-5">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <div class="card-title mb-0">Data Barang Masuk</div>
+                <div class="card-title mb-0">Data Stok Fisik</div>
                 <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm btn-primary">
                     <i class="fe fe-plus"></i> Tambah
                 </a>
@@ -37,16 +38,15 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                 <div class="mb-3 d-flex justify-content-end">
                     <input type="text" id="searchBox" class="form-control w-25" placeholder="Cari...">
                 </div>
-
                 <div class="table-responsive">
-                    <table class="table table-bordered table-striped table-hover align-middle mb-0" id="tabel-barangmasuk">
+                    <table class="table table-bordered table-striped table-hover align-middle" id="tabel-stokfisik">
                         <thead class="table-primary">
                             <tr>
                                 <th>No</th>
-                                <th>Nama Barang</th>
-                                <th>Jumlah</th>
+                                <th>Barang</th>
+                                <th>Lokasi</th>
+                                <th>Jumlah Fisik</th>
                                 <th>Tanggal</th>
-                                <th>Keterangan</th>
                                 <th>Oleh</th>
                                 <?php if ($role === 'admin'): ?>
                                     <th class="text-center">Aksi</th>
@@ -59,13 +59,13 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                 <tr>
                                     <td><?= $no++ ?></td>
                                     <td><?= htmlspecialchars($row['nama_barang']) ?> (<?= $row['satuan'] ?>)</td>
-                                    <td><?= $row['jumlah'] ?></td>
+                                    <td><?= htmlspecialchars($row['lokasi']) ?></td>
+                                    <td><?= $row['jumlah_fisik'] ?></td>
                                     <td><?= date('d/m/Y', strtotime($row['tanggal'])) ?></td>
-                                    <td><?= htmlspecialchars($row['keterangan'] ?? '-') ?></td>
                                     <td><?= htmlspecialchars($row['user_input'] ?? '-') ?></td>
                                     <?php if ($role === 'admin'): ?>
                                         <td class="text-center">
-                                            <button onclick="confirmDelete('delete.php?id=<?= $row['id'] ?>')" class="btn btn-sm btn-danger btn-icon" title="Hapus">
+                                            <button onclick="confirmDelete('delete.php?id=<?= $row['id'] ?>')" class="btn btn-sm btn-danger btn-icon">
                                                 <i class="fe fe-trash-2"></i>
                                             </button>
                                         </td>
@@ -85,7 +85,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
     <div class="modal-dialog">
         <form method="post" action="add.php" class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Tambah Barang Masuk</h5>
+                <h5 class="modal-title">Tambah Stok Fisik</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
@@ -103,16 +103,20 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Jumlah</label>
-                    <input type="number" name="jumlah" class="form-control" required>
+                    <label class="form-label">Jumlah Fisik</label>
+                    <input type="number" name="jumlah_fisik" class="form-control" required>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Tanggal Masuk</label>
+                    <label class="form-label">Lokasi</label>
+                    <input type="text" name="lokasi" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Tanggal</label>
                     <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Keterangan (opsional)</label>
-                    <textarea name="keterangan" class="form-control" rows="2" placeholder="Contoh: pembelian supplier X"></textarea>
+                    <textarea name="keterangan" class="form-control" rows="2" placeholder="Contoh: hasil pengecekan gudang..."></textarea>
                 </div>
             </div>
 
@@ -129,8 +133,8 @@ require_once LAYOUTS_PATH . '/sidebar.php';
 <script>
     document.getElementById("searchBox").addEventListener("keyup", function() {
         const filter = this.value.toLowerCase();
-        document.querySelectorAll("#tabel-barangmasuk tbody tr").forEach(row => {
+        document.querySelectorAll("#tabel-stokfisik tbody tr").forEach(row => {
             row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
         });
     });
-</script>a
+</script>
