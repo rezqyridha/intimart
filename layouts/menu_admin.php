@@ -69,7 +69,7 @@ $current_uri = $_SERVER['REQUEST_URI'];
                 <i class="fe fe-chevron-right side-menu__angle"></i>
             </a>
             <ul class="slide-menu child2">
-                <li><a href="<?= BASE_URL ?>/modules/shared/penjualan/transaksi.php" class="side-menu__item <?= str_contains($current_uri, '/penjualan/transaksi.php') ? 'active' : '' ?>">Penjualan</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/penjualan/index.php" class="side-menu__item <?= str_contains($current_uri, '/penjualan/index.php') ? 'active' : '' ?>">Penjualan</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/retur_penjualan/index.php" class="side-menu__item <?= str_contains($current_uri, '/retur_penjualan/') ? 'active' : '' ?>">Retur Penjualan</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/pembayaran/riwayat.php" class="side-menu__item <?= str_contains($current_uri, '/pembayaran/riwayat') ? 'active' : '' ?>">Riwayat Pembayaran</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/pembayaran/rekonsiliasi.php" class="side-menu__item <?= str_contains($current_uri, '/pembayaran/rekonsiliasi') ? 'active' : '' ?>">Rekonsiliasi Pembayaran</a></li>
