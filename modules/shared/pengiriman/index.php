@@ -30,8 +30,8 @@ require_once LAYOUTS_PATH . '/sidebar.php';
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="card-title mb-0">Manajemen Data Pengiriman</div>
                 <?php if ($role === 'admin'): ?>
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm btn-icon btn-primary" title="Tambah Pengiriman">
-                        <i class="fe fe-plus"></i>
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm btn-primary" title="Tambah Pengiriman">
+                        <i class="fe fe-plus"></i> Tambah
                     </a>
                 <?php endif; ?>
             </div>

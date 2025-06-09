@@ -28,8 +28,8 @@ require_once LAYOUTS_PATH . '/sidebar.php';
     <div class="container-fluid">
         <div class="card custom-card shadow-sm mt-5">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <div class="card-title mb-0">Data Stok Fisik</div>
-                <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm btn-primary">
+                <div class="card-title mb-0">Manajemen Data Stok Fisik</div>
+                <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm btn-primary" title="Tambah Stok Fisik">
                     <i class="fe fe-plus"></i> Tambah
                 </a>
             </div>

@@ -26,9 +26,9 @@ require_once LAYOUTS_PATH . '/sidebar.php';
     <div class="container-fluid">
         <div class="card custom-card shadow-sm mt-5">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <div class="card-title mb-0">Data Barang Keluar</div>
+                <div class="card-title mb-0">Manajemen Data Barang Keluar</div>
                 <?php if (in_array($role, ['admin', 'karyawan'])): ?>
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm btn-primary">
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm btn-primary" title="Tambah Barang Keluar">
                         <i class="fe fe-plus"></i> Tambah
                     </a>
                 <?php endif; ?>

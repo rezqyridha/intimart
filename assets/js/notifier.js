@@ -90,7 +90,6 @@ document.addEventListener("DOMContentLoaded", () => {
 function getDuplicateText(obj) {
     const map = {
         barang: "Barang sudah terdaftar.",
-        pegawai: "Pegawai sudah ada dalam sistem.",
         user: "Username sudah digunakan.",
         pelanggan: "Pelanggan sudah terdaftar.",
         gudang: "Gudang sudah ada.",
@@ -104,10 +103,6 @@ function getDuplicateText(obj) {
         laporan: "Laporan sudah pernah dibuat.",
         notifikasi: "Notifikasi serupa sudah dikirim.",
         target: "Target sudah ditetapkan sebelumnya.",
-        sppd: "Data SPPD sudah ada.",
-        persetujuan: "Persetujuan sudah tercatat.",
-        spt: "SPT sudah dibuat sebelumnya.",
-        evaluasi: "Evaluasi sudah pernah dilakukan.",
     };
     return map[obj] || "Data yang Anda masukkan sudah ada.";
 }
@@ -115,7 +110,6 @@ function getDuplicateText(obj) {
 function getKosongText(obj) {
     const map = {
         barang: "Semua field barang wajib diisi.",
-        pegawai: "Data pegawai harus diisi lengkap.",
         user: "Username dan password wajib diisi.",
         gudang: "Data gudang tidak boleh kosong.",
         penjualan: "Field penjualan harus lengkap.",
@@ -124,10 +118,6 @@ function getKosongText(obj) {
         pembayaran: "Lengkapi detail pembayaran.",
         pelanggan: "Data pelanggan wajib diisi.",
         supplier: "Field supplier tidak boleh kosong.",
-        sppd: "Lengkapi form SPPD terlebih dahulu.",
-        persetujuan: "Data persetujuan belum lengkap.",
-        spt: "Isi form SPT dengan benar.",
-        evaluasi: "Field evaluasi tidak boleh kosong.",
     };
     return map[obj] || "Harap lengkapi semua field yang dibutuhkan.";
 }
@@ -135,7 +125,6 @@ function getKosongText(obj) {
 function getInvalidText(obj) {
     const map = {
         barang: "Barang tidak ditemukan.",
-        pegawai: "Pegawai tidak ditemukan.",
         user: "User tidak ditemukan.",
         pelanggan: "Data pelanggan tidak valid.",
         gudang: "Gudang tidak valid atau tidak ditemukan.",
@@ -143,10 +132,6 @@ function getInvalidText(obj) {
         pengiriman: "Pengiriman tidak ditemukan.",
         retur: "Retur tidak ditemukan.",
         pembayaran: "Pembayaran tidak ditemukan.",
-        sppd: "Data SPPD tidak valid.",
-        persetujuan: "Data persetujuan tidak valid.",
-        spt: "SPT tidak ditemukan.",
-        evaluasi: "Evaluasi tidak ditemukan.",
     };
     return map[obj] || "Data tidak valid atau tidak ditemukan.";
 }
@@ -154,18 +139,12 @@ function getInvalidText(obj) {
 function getFKBlockedText(obj) {
     const map = {
         barang: "Barang tidak dapat dihapus karena digunakan di modul lain seperti stok, penjualan, atau pengiriman.",
-        pegawai:
-            "Pegawai tidak dapat dihapus karena terhubung dengan pengajuan atau evaluasi.",
         user: "User tidak dapat dihapus karena terhubung dengan akun login aktif.",
         gudang: "Gudang tidak dapat dihapus karena digunakan di distribusi atau stok.",
         pelanggan: "Pelanggan memiliki riwayat transaksi.",
         supplier: "Supplier sudah digunakan di pembelian.",
         penjualan: "Penjualan sudah tercatat di laporan.",
         pengiriman: "Pengiriman sudah digunakan.",
-        sppd: "SPPD tidak dapat dihapus karena proses sudah berjalan.",
-        persetujuan:
-            "Persetujuan tidak dapat dihapus karena terikat dokumen resmi.",
-        spt: "SPT tidak dapat dihapus karena digunakan.",
     };
     return (
         map[obj] || "Data tidak dapat dihapus karena digunakan di modul lain."

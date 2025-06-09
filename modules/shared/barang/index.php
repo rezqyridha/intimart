@@ -20,10 +20,10 @@ require_once LAYOUTS_PATH . '/sidebar.php';
 
         <div class="card custom-card shadow-sm mt-5">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <div class="card-title mb-0">Manajemen Data Barang</div>
+                <div class="card-title mb-0"> Manajemen Data Barang</div>
                 <?php if (in_array($role, ['admin', 'karyawan'])): ?>
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm btn-icon btn-primary" title="Tambah Barang">
-                        <i class="fe fe-plus"></i>
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm btn-primary" title="Tambah Barang">
+                        <i class="fe fe-plus"></i> Tambah
                     </a>
                 <?php endif; ?>
             </div>

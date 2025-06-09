@@ -25,8 +25,23 @@ $current_uri = $_SERVER['REQUEST_URI'];
             </a>
         </li>
 
+        <!-- MASTER DATA -->
+        <li class="slide__category"><span class="category-name">Master Data</span></li>
+        <?php $is_master = str_contains($current_uri, '/pelanggan') || str_contains($current_uri, '/supplier'); ?>
+        <li class="slide has-sub <?= $is_master ? 'open' : '' ?>">
+            <a href="#" class="side-menu__item">
+                <i class="ti-briefcase side-menu__icon"></i>
+                <span class="side-menu__label">Data Pelengkap</span>
+                <i class="fe fe-chevron-right side-menu__angle"></i>
+            </a>
+            <ul class="slide-menu child2">
+                <li><a href="<?= BASE_URL ?>/modules/shared/pelanggan/index.php" class="side-menu__item <?= str_contains($current_uri, '/pelanggan/') ? 'active' : '' ?>">Pelanggan</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/supplier/index.php" class="side-menu__item <?= str_contains($current_uri, '/supplier/') ? 'active' : '' ?>">Supplier</a></li>
+            </ul>
+        </li>
+
         <!-- GUDANG & BARANG -->
-        <li class="slide__category"><span class="category-name">Gudang & Barang</span></li>
+        <li class="slide__category"><span class="category-name">Gudang & Produk</span></li>
         <?php $is_stok = str_contains($current_uri, '/barang') || str_contains($current_uri, '/stok') || str_contains($current_uri, '/produk_tidak_laku'); ?>
         <li class="slide has-sub <?= $is_stok ? 'open' : '' ?>">
             <a href="#" class="side-menu__item">
@@ -56,8 +71,8 @@ $current_uri = $_SERVER['REQUEST_URI'];
             <ul class="slide-menu child2">
                 <li><a href="<?= BASE_URL ?>/modules/shared/penjualan/transaksi.php" class="side-menu__item <?= str_contains($current_uri, '/penjualan/transaksi.php') ? 'active' : '' ?>">Penjualan</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/retur_penjualan/index.php" class="side-menu__item <?= str_contains($current_uri, '/retur_penjualan/') ? 'active' : '' ?>">Retur Penjualan</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/shared/pembayaran/riwayat.php" class="side-menu__item <?= str_contains($current_uri, '/pembayaran/riwayat') ? 'active' : '' ?>">Pembayaran</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/shared/pembayaran/rekonsiliasi.php" class="side-menu__item <?= str_contains($current_uri, '/pembayaran/rekonsiliasi') ? 'active' : '' ?>">Rekonsiliasi</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/pembayaran/riwayat.php" class="side-menu__item <?= str_contains($current_uri, '/pembayaran/riwayat') ? 'active' : '' ?>">Riwayat Pembayaran</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/pembayaran/rekonsiliasi.php" class="side-menu__item <?= str_contains($current_uri, '/pembayaran/rekonsiliasi') ? 'active' : '' ?>">Rekonsiliasi Pembayaran</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/pengiriman/index.php" class="side-menu__item <?= str_contains($current_uri, '/pengiriman/') ? 'active' : '' ?>">Pengiriman</a></li>
             </ul>
         </li>
@@ -89,5 +104,6 @@ $current_uri = $_SERVER['REQUEST_URI'];
                 <span class="badge bg-danger rounded-pill ms-auto" id="notif-stok">3</span>
             </a>
         </li>
+
     </ul>
 </nav>
