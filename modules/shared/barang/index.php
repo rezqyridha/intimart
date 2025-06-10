@@ -76,7 +76,6 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                 </div>
             </div>
         </div>
-
     </div>
 </div>
 

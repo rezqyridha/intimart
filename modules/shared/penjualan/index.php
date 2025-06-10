@@ -3,13 +3,18 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/config/constants.php';
 require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
-$role = $_SESSION['role'] ?? '';
+$role = $_SESSION['role'];
+if (!in_array($role, ['admin', 'sales', 'manajer'])) {
+    header("Location: " . BASE_URL . "/unauthorized.php");
+    exit;
+}
 
-// Ambil data penjualan + join nama barang
-$query = "SELECT p.*, b.nama_barang, b.harga_jual 
-          FROM penjualan p 
-          JOIN barang b ON p.id_barang = b.id 
-          ORDER BY p.tanggal DESC";
+$query = "
+    SELECT p.*, b.nama_barang, b.satuan
+    FROM penjualan p
+    JOIN barang b ON p.id_barang = b.id
+    ORDER BY p.tanggal DESC
+";
 $result = $koneksi->query($query);
 
 require_once LAYOUTS_PATH . '/head.php';
@@ -24,7 +29,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="card-title mb-0">Manajemen Data Penjualan</div>
                 <?php if ($role === 'admin') : ?>
-                    <a href="#" class="btn btn-sm  btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah" title="Tambah Penjualan">
+                    <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">
                         <i class="fe fe-plus"></i> Tambah
                     </a>
                 <?php endif; ?>
@@ -35,15 +40,15 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                     <input type="text" id="searchBox" class="form-control w-25" placeholder="Cari...">
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover table-striped mb-0 align-middle" id="tabel-penjualan">
+                    <table class="table table-bordered table-striped table-hover align-middle mb-0" id="tabel-penjualan">
                         <thead class="table-primary">
                             <tr>
                                 <th>No</th>
+                                <th>Barang</th>
                                 <th>Tanggal</th>
-                                <th>Nama Barang</th>
                                 <th>Jumlah</th>
-                                <th>Harga Jual</th>
                                 <th>Total</th>
+                                <th>Status</th>
                                 <?php if ($role === 'admin') : ?>
                                     <th class="text-center">Aksi</th>
                                 <?php endif; ?>
@@ -54,11 +59,15 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                             while ($row = $result->fetch_assoc()) : ?>
                                 <tr>
                                     <td><?= $no++ ?></td>
+                                    <td><?= htmlspecialchars($row['nama_barang']) ?> (<?= $row['satuan'] ?>)</td>
                                     <td><?= date('d-m-Y', strtotime($row['tanggal'])) ?></td>
-                                    <td><?= htmlspecialchars($row['nama_barang']) ?></td>
                                     <td><?= $row['jumlah'] ?></td>
-                                    <td>Rp <?= number_format($row['harga_jual'], 0, ',', '.') ?></td>
-                                    <td>Rp <?= number_format($row['total'], 0, ',', '.') ?></td>
+                                    <td>Rp <?= number_format($row['harga_total'], 0, ',', '.') ?></td>
+                                    <td>
+                                        <span class="badge bg-<?= $row['status_pelunasan'] === 'lunas' ? 'success' : 'warning' ?>">
+                                            <?= ucfirst($row['status_pelunasan']) ?>
+                                        </span>
+                                    </td>
                                     <?php if ($role === 'admin') : ?>
                                         <td class="text-center">
                                             <div class="btn-list d-flex justify-content-center">
@@ -81,57 +90,8 @@ require_once LAYOUTS_PATH . '/sidebar.php';
     </div>
 </div>
 
-<!-- Modal Tambah -->
-<!-- Modal Tambah -->
-<div class="modal fade" id="modalTambah" tabindex="-1">
-    <div class="modal-dialog">
-        <form method="post" action="add.php" class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Tambah Penjualan</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label for="id_barang" class="form-label">Barang</label>
-                    <select name="id_barang" class="form-select" required>
-                        <option value="">-- Pilih Barang --</option>
-                        <?php
-                        $barang = $koneksi->query("SELECT id, nama_barang, satuan FROM barang ORDER BY nama_barang ASC");
-                        while ($b = $barang->fetch_assoc()):
-                        ?>
-                            <option value="<?= $b['id'] ?>">
-                                <?= htmlspecialchars($b['nama_barang']) ?> (<?= $b['satuan'] ?>)
-                            </option>
-                        <?php endwhile; ?>
-                    </select>
-                </div>
-
-                <div class="mb-3">
-                    <label for="jumlah" class="form-label">Jumlah</label>
-                    <input type="number" name="jumlah" class="form-control" min="1" required>
-                </div>
-
-                <div class="mb-3">
-                    <label for="tanggal" class="form-label">Tanggal Penjualan</label>
-                    <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button class="btn btn-primary">
-                    <i class="fe fe-plus me-1"></i> Simpan
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-
-<?php
-require_once LAYOUTS_PATH . '/footer.php';
-require_once LAYOUTS_PATH . '/scripts.php';
-?>
+<?php require_once LAYOUTS_PATH . '/footer.php'; ?>
+<?php require_once LAYOUTS_PATH . '/scripts.php'; ?>
 
 <script>
     document.getElementById("searchBox").addEventListener("keyup", function() {
