@@ -49,7 +49,7 @@ $current_uri = $_SERVER['REQUEST_URI'];
                 <i class="fe fe-chevron-right side-menu__angle"></i>
             </a>
             <ul class="slide-menu child2">
-                <li><a href="<?= BASE_URL ?>/modules/shared/barang/index.php" class="side-menu__item <?= str_contains($current_uri, '/barang/index.php') ? 'active' : '' ?>">Data Barang</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/barang/index.php" class="side-menu__item <?= str_contains($current_uri, '/barang/') ? 'active' : '' ?>">Data Barang</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/barang_masuk/index.php" class="side-menu__item <?= str_contains($current_uri, '/barang_masuk/') ? 'active' : '' ?>">Barang Masuk</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/barang_keluar/index.php" class="side-menu__item <?= str_contains($current_uri, '/barang_keluar/') ? 'active' : '' ?>">Barang Keluar</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/stok/index.php" class="side-menu__item <?= str_contains($current_uri, '/stok/index.php') ? 'active' : '' ?>">Stok Sistem</a></li>
@@ -68,8 +68,8 @@ $current_uri = $_SERVER['REQUEST_URI'];
                 <i class="fe fe-chevron-right side-menu__angle"></i>
             </a>
             <ul class="slide-menu child2">
-                <li><a href="<?= BASE_URL ?>/modules/shared/penjualan/index.php" class="side-menu__item <?= str_contains($current_uri, '/penjualan/index.php') ? 'active' : '' ?>">Penjualan</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/shared/retur_penjualan/index.php" class="side-menu__item <?= str_contains($current_uri, '/retur_penjualan/index.php') ? 'active' : '' ?>">Retur Penjualan</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/penjualan/index.php" class="side-menu__item <?= str_contains($current_uri, '/penjualan/') ? 'active' : '' ?>">Penjualan</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/retur_penjualan/index.php" class="side-menu__item <?= str_contains($current_uri, '/retur_penjualan/') ? 'active' : '' ?>">Retur Penjualan</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/pembayaran/index.php" class="side-menu__item <?= str_contains($current_uri, '/pembayaran/') ? 'active' : '' ?>">Riwayat Pembayaran</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/pembayaran/rekonsiliasi.php" class="side-menu__item <?= str_contains($current_uri, '/pembayaran/rekonsiliasi') ? 'active' : '' ?>">Rekonsiliasi Pembayaran</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/pengiriman/index.php" class="side-menu__item <?= str_contains($current_uri, '/pengiriman/') ? 'active' : '' ?>">Pengiriman</a></li>

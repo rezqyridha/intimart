@@ -8,7 +8,6 @@ if ($_SESSION['role'] !== 'admin') {
     exit;
 }
 
-// Jika POST: Proses update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $_POST['id'] ?? '';
     $tujuan = trim($_POST['tujuan'] ?? '');
@@ -17,9 +16,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_barang = $_POST['id_barang'] ?? [];
     $jumlah = $_POST['jumlah'] ?? [];
 
-    if ($id === '' || !is_numeric($id) || $tujuan === '' || empty($id_barang) || count($id_barang) !== count($jumlah)) {
+    if ($id === '' || !is_numeric($id) || $tujuan === '' || $tanggal_kirim === '' || empty($id_barang) || count($id_barang) !== count($jumlah)) {
         header("Location: edit.php?id=$id&msg=invalid&obj=pengiriman");
         exit;
+    }
+
+    foreach ($id_barang as $i => $idb) {
+        $jml = (int) $jumlah[$i];
+
+        $sql = "
+            SELECT 
+                IFNULL(masuk.total_masuk, 0) -
+                (IFNULL(keluar.total_keluar, 0) + IFNULL(pj.total_terjual, 0) - IFNULL(retur.total_retur, 0)) AS stok_akhir
+            FROM barang b
+            LEFT JOIN (SELECT id_barang, SUM(jumlah) AS total_masuk FROM barang_masuk GROUP BY id_barang) masuk ON b.id = masuk.id_barang
+            LEFT JOIN (SELECT id_barang, SUM(jumlah) AS total_keluar FROM barang_keluar GROUP BY id_barang) keluar ON b.id = keluar.id_barang
+            LEFT JOIN (SELECT id_barang, SUM(jumlah) AS total_terjual FROM penjualan GROUP BY id_barang) pj ON b.id = pj.id_barang
+            LEFT JOIN (
+                SELECT p.id_barang, SUM(r.jumlah) AS total_retur
+                FROM retur r
+                JOIN penjualan p ON r.id_penjualan = p.id
+                GROUP BY p.id_barang
+            ) retur ON b.id = retur.id_barang
+            WHERE b.id = ?
+        ";
+
+        $stmt = $koneksi->prepare($sql);
+        $stmt->bind_param("i", $idb);
+        $stmt->execute();
+        $stmt->bind_result($stok_akhir);
+        $stmt->fetch();
+        $stmt->close();
+
+        if ($jml > $stok_akhir) {
+            header("Location: edit.php?id=$id&msg=stok_limit&obj=pengiriman");
+            exit;
+        }
     }
 
     $stmt = $koneksi->prepare("UPDATE pengiriman SET tujuan = ?, tanggal_kirim = ?, estimasi_tiba = ? WHERE id = ?");
@@ -30,8 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $koneksi->query("DELETE FROM pengiriman_detail WHERE id_pengiriman = $id");
     $stmt = $koneksi->prepare("INSERT INTO pengiriman_detail (id_pengiriman, id_barang, jumlah) VALUES (?, ?, ?)");
     for ($i = 0; $i < count($id_barang); $i++) {
-        $idb = $id_barang[$i];
-        $jml = $jumlah[$i];
+        $idb = (int) $id_barang[$i];
+        $jml = (int) $jumlah[$i];
         $stmt->bind_param("iii", $id, $idb, $jml);
         $stmt->execute();
     }
@@ -61,14 +93,14 @@ $q_pengiriman->close();
 $details = $koneksi->query("SELECT * FROM pengiriman_detail WHERE id_pengiriman = $id");
 $barang = $koneksi->query("SELECT id, nama_barang, satuan FROM barang ORDER BY nama_barang ASC");
 
-ob_start();
-$barang->data_seek(0);
+$optionList = [];
 while ($b = $barang->fetch_assoc()) {
-    $id = $b['id'];
-    $label = htmlspecialchars($b['nama_barang'] . ' - ' . $b['satuan']);
-    echo "<option value=\"$id\">$label</option>";
+    $optionList[] = [
+        'id' => $b['id'],
+        'nama_barang' => $b['nama_barang'],
+        'satuan' => $b['satuan']
+    ];
 }
-$optionHtml = ob_get_clean();
 
 require_once LAYOUTS_PATH . '/head.php';
 require_once LAYOUTS_PATH . '/header.php';
@@ -76,11 +108,13 @@ require_once LAYOUTS_PATH . '/topbar.php';
 require_once LAYOUTS_PATH . '/sidebar.php';
 ?>
 
+
 <div class="main-content app-content">
     <div class="container-fluid">
         <div class="card custom-card mt-5">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">Edit Data Pengiriman</h5>
+                <a href="index.php" class="btn btn-sm btn-dark">← Kembali</a>
             </div>
 
             <form action="edit.php" method="post">
@@ -148,8 +182,9 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                 </div>
 
                 <div class="card-footer text-end">
-                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                    <a href="index.php" class="btn btn-secondary">Batal</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fe fe-save"></i> Simpan Perubahan
+                    </button>
                 </div>
             </form>
         </div>
@@ -162,16 +197,33 @@ require_once LAYOUTS_PATH . '/scripts.php';
 ?>
 
 <script>
-    const BARANG_OPTIONS = `<?= $optionHtml ?>`;
+    const BARANG_OPTIONS = <?= json_encode($optionList) ?>;
 
-    document.getElementById("btnTambahBaris").addEventListener("click", function() {
+    function renderBarangDropdowns() {
+        const selects = document.querySelectorAll("select[name='id_barang[]']");
+        const selectedIds = [...selects].map(s => s.value).filter(v => v !== '');
+
+        selects.forEach(select => {
+            const current = select.value;
+            select.innerHTML = '<option value="">-- Pilih Barang --</option>';
+            BARANG_OPTIONS.forEach(opt => {
+                const isUsed = selectedIds.includes(String(opt.id)) && String(opt.id) !== current;
+                if (!isUsed || String(opt.id) === current) {
+                    const option = document.createElement("option");
+                    option.value = opt.id;
+                    option.textContent = `${opt.nama_barang} - ${opt.satuan}`;
+                    if (String(opt.id) === current) option.selected = true;
+                    select.appendChild(option);
+                }
+            });
+        });
+    }
+
+    document.getElementById("btnTambahBaris").addEventListener("click", () => {
         const row = document.createElement("tr");
         row.innerHTML = `
         <td>
-            <select name="id_barang[]" class="form-select" required>
-                <option value="">-- Pilih Barang --</option>
-                ${BARANG_OPTIONS}
-            </select>
+            <select name="id_barang[]" class="form-select" required onchange="renderBarangDropdowns()"></select>
         </td>
         <td>
             <input type="number" name="jumlah[]" class="form-control" value="1" min="1" required>
@@ -183,11 +235,15 @@ require_once LAYOUTS_PATH . '/scripts.php';
         </td>
     `;
         document.querySelector("#tabel-barang tbody").appendChild(row);
+        renderBarangDropdowns();
     });
 
-    document.addEventListener("click", function(e) {
-        if (e.target.classList.contains("btnHapusRow")) {
+    document.addEventListener("click", e => {
+        if (e.target.closest(".btnHapusRow")) {
             e.target.closest("tr").remove();
+            renderBarangDropdowns();
         }
     });
+
+    document.addEventListener("DOMContentLoaded", renderBarangDropdowns);
 </script>

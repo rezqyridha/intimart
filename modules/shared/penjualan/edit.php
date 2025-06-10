@@ -1,91 +1,91 @@
 <?php
-require_once '../../../config/constants.php';
-require_once CONFIG_PATH . '/koneksi.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/config/constants.php';
 require_once AUTH_PATH . '/session.php';
+require_once CONFIG_PATH . '/koneksi.php';
 
 if ($_SESSION['role'] !== 'admin') {
-    header("Location: " . BASE_URL . "/unauthorized.php");
+    header("Location: index.php?msg=unauthorized&obj=penjualan");
     exit;
 }
 
-$id = $_GET['id'] ?? null;
-
-if (!$id || !is_numeric($id)) {
+$id = (int)($_GET['id'] ?? 0);
+if ($id <= 0) {
     header("Location: index.php?msg=invalid&obj=penjualan");
     exit;
 }
 
-// Handle submit
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_barang = trim($_POST['id_barang'] ?? '');
-    $jumlah    = trim($_POST['jumlah'] ?? '');
-    $tanggal   = trim($_POST['tanggal'] ?? '');
+// Ambil data lama
+$stmt = $koneksi->prepare("SELECT * FROM penjualan WHERE id = ?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$data = $stmt->get_result()->fetch_assoc();
+$stmt->close();
 
-    if (!$id_barang || !$jumlah || !$tanggal || !is_numeric($jumlah) || $jumlah <= 0) {
+if (!$data) {
+    header("Location: index.php?msg=invalid&obj=penjualan");
+    exit;
+}
+
+// Ambil daftar barang
+$barangList = $koneksi->query("SELECT id, nama_barang, satuan FROM barang ORDER BY nama_barang ASC");
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id_barang = (int)($_POST['id_barang'] ?? 0);
+    $jumlah    = (int)($_POST['jumlah'] ?? 0);
+    $harga     = (float)($_POST['harga'] ?? 0);
+    $tanggal   = $_POST['tanggal'] ?? '';
+    $keterangan = trim($_POST['keterangan'] ?? '');
+
+    if ($id_barang <= 0 || $jumlah <= 0 || $harga <= 0 || empty($tanggal)) {
         header("Location: edit.php?id=$id&msg=kosong&obj=penjualan");
         exit;
     }
 
-    // Ambil harga terbaru
-    $barang = $koneksi->query("SELECT harga_jual FROM barang WHERE id = $id_barang")->fetch_assoc();
-    if (!$barang) {
+    // Cek barang
+    $cek = $koneksi->prepare("SELECT COUNT(*) FROM barang WHERE id = ?");
+    $cek->bind_param("i", $id_barang);
+    $cek->execute();
+    $cek->bind_result($ada);
+    $cek->fetch();
+    $cek->close();
+
+    if (!$ada) {
         header("Location: edit.php?id=$id&msg=invalid&obj=penjualan");
         exit;
     }
-    $harga_jual = $barang['harga_jual'];
 
-    // Hitung ulang stok tersedia (kecuali jumlah penjualan ini sendiri)
-    $stok_masuk = $koneksi->query("SELECT SUM(jumlah) AS total FROM barang_masuk WHERE id_barang = $id_barang")->fetch_assoc()['total'] ?? 0;
-    $stok_keluar = $koneksi->query("SELECT SUM(jumlah) AS total FROM barang_keluar WHERE id_barang = $id_barang")->fetch_assoc()['total'] ?? 0;
-    $stok_penjualan_lain = $koneksi->query("SELECT SUM(jumlah) AS total FROM penjualan WHERE id_barang = $id_barang AND id != $id")->fetch_assoc()['total'] ?? 0;
+    $total = $jumlah * $harga;
 
-    $stok_tersedia = $stok_masuk - ($stok_keluar + $stok_penjualan_lain);
-
-    if ($jumlah > $stok_tersedia) {
-        header("Location: edit.php?id=$id&msg=failed&obj=penjualan");
-        exit;
-    }
-
-    $harga_total = $jumlah * $harga_jual;
-
-    $stmt = $koneksi->prepare("UPDATE penjualan SET id_barang = ?, jumlah = ?, total = ?, tanggal = ? WHERE id = ?");
-    $stmt->bind_param("iidsi", $id_barang, $jumlah, $harga_total, $tanggal, $id);
+    $stmt = $koneksi->prepare("UPDATE penjualan SET id_barang=?, jumlah=?, harga=?, total=?, tanggal=?, keterangan=? WHERE id=?");
+    $stmt->bind_param("iiidssi", $id_barang, $jumlah, $harga, $total, $tanggal, $keterangan, $id);
 
     if ($stmt->execute()) {
         header("Location: index.php?msg=updated&obj=penjualan");
     } else {
         header("Location: edit.php?id=$id&msg=failed&obj=penjualan");
     }
+    $stmt->close();
     exit;
 }
-
-// Tampilkan data awal
-$data = $koneksi->query("SELECT * FROM penjualan WHERE id = $id")->fetch_assoc();
-if (!$data) {
-    header("Location: index.php?msg=invalid&obj=penjualan");
-    exit;
-}
-
-$barangList = $koneksi->query("SELECT id, nama_barang, satuan FROM barang ORDER BY nama_barang ASC");
-
-require_once LAYOUTS_PATH . '/head.php';
-require_once LAYOUTS_PATH . '/header.php';
-require_once LAYOUTS_PATH . '/topbar.php';
-require_once LAYOUTS_PATH . '/sidebar.php';
 ?>
+
+<?php require_once LAYOUTS_PATH . '/head.php'; ?>
+<?php require_once LAYOUTS_PATH . '/header.php'; ?>
+<?php require_once LAYOUTS_PATH . '/topbar.php'; ?>
+<?php require_once LAYOUTS_PATH . '/sidebar.php'; ?>
 
 <div class="main-content app-content">
     <div class="container-fluid">
-        <div class="card custom-card shadow-sm mt-5">
-            <div class="card-header">
-                <div class="card-title mb-0">Edit Penjualan</div>
+        <div class="card custom-card mt-5 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-title mb-0">Edit Data Penjualan</div>
+                <a href="index.php" class="btn btn-sm btn-dark">← Kembali</a>
             </div>
-
-            <form method="post" action="" class="card-body">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Barang</label>
-                        <select name="id_barang" class="form-select" required>
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="id_barang" class="form-label">Barang</label>
+                        <select class="form-select" name="id_barang" id="id_barang" required>
                             <option value="">-- Pilih Barang --</option>
                             <?php while ($b = $barangList->fetch_assoc()): ?>
                                 <option value="<?= $b['id'] ?>" <?= $b['id'] == $data['id_barang'] ? 'selected' : '' ?>>
@@ -94,22 +94,27 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                             <?php endwhile; ?>
                         </select>
                     </div>
-
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Jumlah</label>
-                        <input type="number" name="jumlah" class="form-control" value="<?= $data['jumlah'] ?>" min="1" required>
+                    <div class="mb-3">
+                        <label for="jumlah" class="form-label">Jumlah</label>
+                        <input type="number" name="jumlah" id="jumlah" class="form-control" required value="<?= $data['jumlah'] ?>">
                     </div>
-
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Tanggal</label>
-                        <input type="date" name="tanggal" class="form-control" value="<?= $data['tanggal'] ?>" required>
+                    <div class="mb-3">
+                        <label for="harga" class="form-label">Harga Satuan</label>
+                        <input type="number" name="harga" id="harga" class="form-control" step="0.01" required value="<?= $data['harga'] ?>">
                     </div>
-                </div>
-
-                <div class="d-flex justify-content-end">
-                    <button class="btn btn-primary"><i class="fe fe-save me-1"></i> Simpan Perubahan</button>
-                </div>
-            </form>
+                    <div class="mb-3">
+                        <label for="tanggal" class="form-label">Tanggal</label>
+                        <input type="date" name="tanggal" id="tanggal" class="form-control" required value="<?= $data['tanggal'] ?>">
+                    </div>
+                    <div class="mb-3">
+                        <label for="keterangan" class="form-label">Keterangan</label>
+                        <textarea name="keterangan" id="keterangan" class="form-control"><?= htmlspecialchars($data['keterangan']) ?></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fe fe-save"></i> Simpan Perubahan
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>

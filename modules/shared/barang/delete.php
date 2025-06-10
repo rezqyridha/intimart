@@ -15,17 +15,18 @@ if ($id <= 0) {
 }
 
 $cekRelasi = [
-    'barang_masuk'        => 'SELECT COUNT(*) FROM barang_masuk WHERE id_barang = ?',
-    'barang_keluar'       => 'SELECT COUNT(*) FROM barang_keluar WHERE id_barang = ?',
-    'barang_kadaluarsa'   => 'SELECT COUNT(*) FROM barang_kadaluarsa WHERE id_barang = ?',
-    'detail_restok'       => 'SELECT COUNT(*) FROM detail_restok WHERE id_barang = ?',
-    'penjualan'           => 'SELECT COUNT(*) FROM penjualan WHERE id_barang = ?',
-    'pengiriman'          => 'SELECT COUNT(*) FROM pengiriman WHERE id_barang = ?',
-    'pemesanan'           => 'SELECT COUNT(*) FROM pemesanan WHERE id_barang = ?',
-    'stok'                => 'SELECT COUNT(*) FROM stok WHERE id_barang = ?'
+    'barang_masuk'         => 'SELECT COUNT(*) FROM barang_masuk WHERE id_barang = ?',
+    'barang_keluar'        => 'SELECT COUNT(*) FROM barang_keluar WHERE id_barang = ?',
+    'barang_kadaluarsa'    => 'SELECT COUNT(*) FROM barang_kadaluarsa WHERE id_barang = ?',
+    'detail_restok'        => 'SELECT COUNT(*) FROM detail_restok WHERE id_barang = ?',
+    'penjualan'            => 'SELECT COUNT(*) FROM penjualan WHERE id_barang = ?',
+    'pengiriman_detail'    => 'SELECT COUNT(*) FROM pengiriman_detail WHERE id_barang = ?',
+    'pemesanan'            => 'SELECT COUNT(*) FROM pemesanan WHERE id_barang = ?',
+    'produk_tidak_laku'    => 'SELECT COUNT(*) FROM produk_tidak_laku WHERE id_barang = ?',
+    'stok_fisik'           => 'SELECT COUNT(*) FROM stok_fisik WHERE id_barang = ?'
 ];
 
-foreach ($cekRelasi as $query) {
+foreach ($cekRelasi as $tabel => $query) {
     $stmt = $koneksi->prepare($query);
     $stmt->bind_param("i", $id);
     $stmt->execute();
@@ -39,6 +40,7 @@ foreach ($cekRelasi as $query) {
     }
 }
 
+// Aman untuk dihapus
 $stmt = $koneksi->prepare("DELETE FROM barang WHERE id = ?");
 $stmt->bind_param("i", $id);
 $stmt->execute() ?

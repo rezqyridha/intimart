@@ -12,8 +12,8 @@ if (!in_array($role, ['admin', 'karyawan'])) {
 }
 
 $query = "
-    SELECT rp.*, b.nama_barang, b.satuan, p.tanggal AS tgl_penjualan
-    FROM retur rp
+    SELECT rp.*, b.nama_barang, b.satuan, p.tanggal AS tgl_penjualan, p.jumlah AS jumlah_terjual
+    FROM retur_penjualan rp
     JOIN penjualan p ON rp.id_penjualan = p.id
     JOIN barang b ON p.id_barang = b.id
     ORDER BY rp.tanggal DESC
@@ -32,8 +32,8 @@ require_once LAYOUTS_PATH . '/sidebar.php';
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="card-title mb-0">Manajemen Data Retur Penjualan</div>
                 <?php if (in_array($role, ['admin', 'karyawan'])): ?>
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm  btn-primary" title="Tambah Retur">
-                        <i class="fe fe-plus"></i>Tambah
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm btn-primary">
+                        <i class="fe fe-plus"></i> Tambah
                     </a>
                 <?php endif; ?>
             </div>
@@ -63,15 +63,20 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                 <tr>
                                     <td><?= $no++ ?></td>
                                     <td><?= htmlspecialchars($row['nama_barang']) ?> (<?= $row['satuan'] ?>)</td>
-                                    <td><?= $row['jumlah'] ?></td>
+                                    <td><?= $row['jumlah'] ?> / <?= $row['jumlah_terjual'] ?></td>
                                     <td><?= date('d-m-Y', strtotime($row['tgl_penjualan'])) ?></td>
                                     <td><?= date('d-m-Y', strtotime($row['tanggal'])) ?></td>
                                     <td><?= htmlspecialchars($row['alasan']) ?></td>
                                     <?php if ($role === 'admin'): ?>
                                         <td class="text-center">
-                                            <button onclick="confirmDelete('delete.php?id=<?= $row['id'] ?>')" class="btn btn-sm btn-icon btn-danger" title="Hapus">
-                                                <i class="fe fe-trash-2"></i>
-                                            </button>
+                                            <div class="btn-list d-flex justify-content-center">
+                                                <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-icon btn-warning me-1" title="Edit">
+                                                    <i class="fe fe-edit"></i>
+                                                </a>
+                                                <button onclick="confirmDelete('delete.php?id=<?= $row['id'] ?>')" class="btn btn-sm btn-icon btn-danger" title="Hapus">
+                                                    <i class="fe fe-trash-2"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                     <?php endif; ?>
                                 </tr>
@@ -84,7 +89,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
     </div>
 </div>
 
-<!-- Modal Tambah -->
+<!-- Modal Tambah Retur -->
 <div class="modal fade" id="modalTambah" tabindex="-1">
     <div class="modal-dialog">
         <form method="post" action="add.php" class="modal-content">
@@ -100,15 +105,15 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                         <option value="">-- Pilih Transaksi --</option>
                         <?php
                         $penjualan = $koneksi->query("
-              SELECT p.id, b.nama_barang, b.satuan, p.tanggal
-              FROM penjualan p
-              JOIN barang b ON p.id_barang = b.id
-              ORDER BY p.tanggal DESC
-            ");
+                            SELECT p.id, b.nama_barang, b.satuan, p.tanggal, p.jumlah
+                            FROM penjualan p
+                            JOIN barang b ON p.id_barang = b.id
+                            ORDER BY p.tanggal DESC
+                        ");
                         while ($row = $penjualan->fetch_assoc()):
                         ?>
                             <option value="<?= $row['id'] ?>">
-                                <?= htmlspecialchars($row['nama_barang']) ?> (<?= $row['satuan'] ?>) - <?= date('d-m-Y', strtotime($row['tanggal'])) ?>
+                                <?= htmlspecialchars($row['nama_barang']) ?> (<?= $row['satuan'] ?>) - <?= date('d-m-Y', strtotime($row['tanggal'])) ?> - Terjual: <?= $row['jumlah'] ?>
                             </option>
                         <?php endwhile; ?>
                     </select>

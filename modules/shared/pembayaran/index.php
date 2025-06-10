@@ -155,7 +155,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
             </div>
 
             <div class="modal-footer">
-                <button class="btn btn-primary"><i class="fe fe-plus me-1"></i> Simpan</button>
+                <button class="btn btn-primary"><i class="fe fe-save me-1"></i> Simpan</button>
             </div>
         </form>
     </div>

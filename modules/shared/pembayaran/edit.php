@@ -3,25 +3,23 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/config/constants.php';
 require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
-$role = $_SESSION['role'];
-if ($role !== 'admin') {
-    header("Location: " . BASE_URL . "/unauthorized.php");
+if ($_SESSION['role'] !== 'admin') {
+    header("Location: index.php?msg=unauthorized&obj=pembayaran");
     exit;
 }
 
-// Validasi ID
-$id = $_GET['id'] ?? null;
-if (!$id || !is_numeric($id)) {
+$id = (int)($_GET['id'] ?? 0);
+if ($id <= 0) {
     header("Location: index.php?msg=invalid&obj=pembayaran");
     exit;
 }
 
-// Ambil data pembayaran
+// Ambil data lama pembayaran
 $stmt = $koneksi->prepare("SELECT * FROM pembayaran WHERE id = ?");
 $stmt->bind_param("i", $id);
 $stmt->execute();
-$result = $stmt->get_result();
-$data = $result->fetch_assoc();
+$data = $stmt->get_result()->fetch_assoc();
+$stmt->close();
 
 if (!$data) {
     header("Location: index.php?msg=invalid&obj=pembayaran");
@@ -29,59 +27,50 @@ if (!$data) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_penjualan = $_POST['id_penjualan'];
-    $jumlah_bayar = $_POST['jumlah_bayar'];
-    $metode = $_POST['metode'];
-    $tanggal = $_POST['tanggal'];
-    $keterangan = $_POST['keterangan'] ?? null;
+    $id_penjualan  = (int)($_POST['id_penjualan'] ?? 0);
+    $jumlah_bayar  = (float)($_POST['jumlah_bayar'] ?? 0);
+    $tanggal       = $_POST['tanggal'] ?? '';
+    $keterangan    = trim($_POST['keterangan'] ?? '');
 
-    // Cek pembayaran duplikat
-    $cek = $koneksi->prepare("SELECT COUNT(*) FROM pembayaran WHERE id_penjualan = ? AND id != ?");
-    $cek->bind_param("ii", $id_penjualan, $id);
-    $cek->execute();
-    $cek->bind_result($total_duplikat);
-    $cek->fetch();
-    $cek->close();
-
-    if ($total_duplikat > 0) {
-        header("Location: index.php?msg=duplicate&obj=pembayaran");
+    if ($id_penjualan <= 0 || $jumlah_bayar <= 0 || empty($tanggal)) {
+        header("Location: edit.php?id=$id&msg=kosong&obj=pembayaran");
         exit;
     }
 
     // Ambil total dari penjualan
-    $q = $koneksi->prepare("SELECT harga_total FROM penjualan WHERE id = ?");
-    $q->bind_param("i", $id_penjualan);
-    $q->execute();
-    $q->bind_result($harga_total);
-    $q->fetch();
-    $q->close();
+    $cek = $koneksi->prepare("SELECT harga_total FROM penjualan WHERE id = ?");
+    $cek->bind_param("i", $id_penjualan);
+    $cek->execute();
+    $cek->bind_result($harga_total);
+    $cek->fetch();
+    $cek->close();
 
-    if ($jumlah_bayar > $harga_total) {
-        header("Location: index.php?msg=invalid&obj=pembayaran");
+    if (!$harga_total) {
+        header("Location: edit.php?id=$id&msg=invalid&obj=pembayaran");
         exit;
     }
 
-    // Update data pembayaran
-    $stmt = $koneksi->prepare("UPDATE pembayaran SET id_penjualan=?, jumlah_bayar=?, metode=?, tanggal=?, keterangan=? WHERE id=?");
-    $stmt->bind_param("idsssi", $id_penjualan, $jumlah_bayar, $metode, $tanggal, $keterangan, $id);
-    $success = $stmt->execute();
-    $stmt->close();
+    // Tentukan status pelunasan
+    $status = ($jumlah_bayar >= $harga_total) ? 'lunas' : 'belum lunas';
 
-    if ($success) {
+    // Update data pembayaran
+    $stmt = $koneksi->prepare("UPDATE pembayaran SET id_penjualan=?, jumlah_bayar=?, tanggal=?, keterangan=? WHERE id=?");
+    $stmt->bind_param("idssi", $id_penjualan, $jumlah_bayar, $tanggal, $keterangan, $id);
+
+    if ($stmt->execute()) {
+        // Update status pelunasan di penjualan
+        $stmt2 = $koneksi->prepare("UPDATE penjualan SET status_pelunasan=? WHERE id=?");
+        $stmt2->bind_param("si", $status, $id_penjualan);
+        $stmt2->execute();
+        $stmt2->close();
+
         header("Location: index.php?msg=updated&obj=pembayaran");
     } else {
-        header("Location: index.php?msg=failed&obj=pembayaran");
+        header("Location: edit.php?id=$id&msg=failed&obj=pembayaran");
     }
+    $stmt->close();
     exit;
 }
-
-// Ambil data untuk dropdown
-$penjualan = $koneksi->query("
-    SELECT p.id, b.nama_barang, b.satuan, p.tanggal, p.harga_total
-    FROM penjualan p
-    JOIN barang b ON p.id_barang = b.id
-    ORDER BY p.tanggal DESC
-");
 ?>
 
 <?php require_once LAYOUTS_PATH . '/head.php'; ?>
@@ -91,59 +80,51 @@ $penjualan = $koneksi->query("
 
 <div class="main-content app-content">
     <div class="container-fluid">
-
-        <div class="card custom-card shadow-sm mt-5">
+        <div class="card custom-card mt-5 shadow-sm">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="card-title mb-0">Edit Data Pembayaran</div>
+                <a href="index.php" class="btn btn-sm btn-dark">← Kembali</a>
             </div>
-
             <div class="card-body">
                 <form method="post">
                     <div class="mb-3">
-                        <label class="form-label">Transaksi Penjualan</label>
-                        <select name="id_penjualan" class="form-select" required>
+                        <label for="id_penjualan" class="form-label">Transaksi Penjualan</label>
+                        <select name="id_penjualan" id="id_penjualan" class="form-select" required>
                             <option value="">-- Pilih Transaksi --</option>
-                            <?php while ($row = $penjualan->fetch_assoc()): ?>
-                                <option value="<?= $row['id'] ?>" <?= $row['id'] == $data['id_penjualan'] ? 'selected' : '' ?>>
+                            <?php
+                            $penjualan = $koneksi->query("
+                                SELECT p.id, b.nama_barang, b.satuan, p.tanggal, p.harga_total
+                                FROM penjualan p
+                                JOIN barang b ON p.id_barang = b.id
+                                ORDER BY p.tanggal DESC
+                            ");
+                            while ($row = $penjualan->fetch_assoc()):
+                                $selected = ($row['id'] == $data['id_penjualan']) ? 'selected' : '';
+                            ?>
+                                <option value="<?= $row['id'] ?>" <?= $selected ?>>
                                     <?= htmlspecialchars($row['nama_barang']) ?> (<?= $row['satuan'] ?>) - <?= date('d-m-Y', strtotime($row['tanggal'])) ?> - Rp <?= number_format($row['harga_total'], 0, ',', '.') ?>
                                 </option>
                             <?php endwhile; ?>
                         </select>
                     </div>
-
                     <div class="mb-3">
-                        <label class="form-label">Jumlah Bayar</label>
-                        <input type="number" name="jumlah_bayar" class="form-control" value="<?= $data['jumlah_bayar'] ?>" min="100" required>
+                        <label for="jumlah_bayar" class="form-label">Jumlah Pembayaran</label>
+                        <input type="number" name="jumlah_bayar" id="jumlah_bayar" class="form-control" required value="<?= $data['jumlah_bayar'] ?>">
                     </div>
-
                     <div class="mb-3">
-                        <label class="form-label">Metode</label>
-                        <select name="metode" class="form-select" required>
-                            <option value="">-- Pilih Metode --</option>
-                            <option value="tunai" <?= $data['metode'] === 'tunai' ? 'selected' : '' ?>>Tunai</option>
-                            <option value="transfer" <?= $data['metode'] === 'transfer' ? 'selected' : '' ?>>Transfer</option>
-                            <option value="qris" <?= $data['metode'] === 'qris' ? 'selected' : '' ?>>QRIS</option>
-                        </select>
+                        <label for="tanggal" class="form-label">Tanggal Pembayaran</label>
+                        <input type="date" name="tanggal" id="tanggal" class="form-control" required value="<?= $data['tanggal'] ?>">
                     </div>
-
                     <div class="mb-3">
-                        <label class="form-label">Tanggal</label>
-                        <input type="date" name="tanggal" class="form-control" value="<?= $data['tanggal'] ?>" required>
+                        <label for="keterangan" class="form-label">Keterangan</label>
+                        <textarea name="keterangan" id="keterangan" class="form-control"><?= htmlspecialchars($data['keterangan']) ?></textarea>
                     </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Keterangan</label>
-                        <textarea name="keterangan" class="form-control" rows="2"><?= $data['keterangan'] ?></textarea>
-                    </div>
-
-                    <div class="mt-4 d-flex justify-content-between">
-                        <a href="index.php" class="btn btn-secondary"><i class="fe fe-arrow-left"></i> Kembali</a>
-                        <button class="btn btn-primary"><i class="fe fe-save"></i> Simpan Perubahan</button>
-                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fe fe-save"></i> Simpan Perubahan
+                    </button>
                 </form>
             </div>
         </div>
-
     </div>
 </div>
 

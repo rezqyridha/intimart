@@ -65,6 +65,16 @@ document.addEventListener("DOMContentLoaded", () => {
             title: "Akses Ditolak",
             text: getUnauthorizedText(obj),
         },
+        stok_limit: {
+            icon: "error",
+            title: "Stok Tidak Cukup",
+            text: "Jumlah barang melebihi stok yang tersedia.",
+        },
+        melebihi: {
+            icon: "warning",
+            title: "Jumlah Melebihi",
+            text: "", // akan diganti dinamis nanti
+        },
         nochange: {
             icon: "info",
             title: "Tidak Ada Perubahan",
@@ -73,6 +83,13 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     if (msg && notifications[msg]) {
+        if (msg === "melebihi" && obj === "retur") {
+            const maks = params.get("maks") || "?";
+            notifications[
+                msg
+            ].text = `Jumlah retur tidak boleh melebihi total penjualan (${maks} unit).`;
+        }
+
         Swal.fire({
             ...notifications[msg],
             timer: 2000,

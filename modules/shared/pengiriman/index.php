@@ -7,7 +7,8 @@ $role = $_SESSION['role'];
 $username = $_SESSION['username'] ?? 'User';
 
 $query = "
-    SELECT p.*, GROUP_CONCAT(CONCAT(b.nama_barang, ' (', pd.jumlah, ')') SEPARATOR '<br>') AS detail_barang
+    SELECT p.*, 
+           GROUP_CONCAT(CONCAT(b.nama_barang, ' (', pd.jumlah, ') ', b.satuan) SEPARATOR '<br>') AS detail_barang
     FROM pengiriman p
     LEFT JOIN pengiriman_detail pd ON pd.id_pengiriman = p.id
     LEFT JOIN barang b ON b.id = pd.id_barang
@@ -63,20 +64,37 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                     <td><?= htmlspecialchars($row['tujuan']) ?></td>
                                     <td><?= htmlspecialchars($row['tanggal_kirim']) ?></td>
                                     <td><?= htmlspecialchars($row['estimasi_tiba']) ?></td>
-                                    <td><?= htmlspecialchars(ucfirst($row['status_pengiriman'])) ?></td>
+                                    <?php
+                                    $status = strtolower($row['status_pengiriman']);
+                                    $badge = match ($status) {
+                                        'dikirim'   => 'info',
+                                        'diterima'  => 'success',
+                                        default     => 'secondary'
+                                    };
+                                    ?>
+                                    <td>
+                                        <span class="badge bg-<?= $badge ?>">
+                                            <?= ucfirst($status) ?>
+                                        </span>
+                                    </td>
                                     <td><?= $row['detail_barang'] ?></td>
                                     <?php if ($role === 'admin'): ?>
                                         <td class="text-center">
-                                            <div class="btn-list d-flex justify-content-center">
-                                                <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-icon btn-warning me-1" title="Edit">
-                                                    <i class="fe fe-edit"></i>
-                                                </a>
-                                                <button onclick="confirmDelete('delete.php?id=<?= $row['id'] ?>')" class="btn btn-sm btn-icon btn-danger" title="Hapus">
-                                                    <i class="fe fe-trash-2"></i>
-                                                </button>
-                                            </div>
+                                            <?php if (in_array($row['status_pengiriman'], ['diproses'])): ?>
+                                                <div class="btn-list d-flex justify-content-center">
+                                                    <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-icon btn-warning me-1" title="Edit">
+                                                        <i class="fe fe-edit"></i>
+                                                    </a>
+                                                    <button onclick="confirmDelete('delete.php?id=<?= $row['id'] ?>')" class="btn btn-sm btn-icon btn-danger" title="Hapus">
+                                                        <i class="fe fe-trash-2"></i>
+                                                    </button>
+                                                </div>
+                                            <?php else: ?>
+                                                <span class="badge bg-secondary">Terkunci</span>
+                                            <?php endif; ?>
                                         </td>
                                     <?php endif; ?>
+
                                 </tr>
                             <?php endwhile; ?>
                         </tbody>
@@ -87,7 +105,18 @@ require_once LAYOUTS_PATH . '/sidebar.php';
     </div>
 </div>
 
-<!-- Modal Tambah Pengiriman -->
+<?php
+$barang->data_seek(0);
+$optionList = [];
+while ($b = $barang->fetch_assoc()) {
+    $optionList[] = [
+        'id' => $b['id'],
+        'nama_barang' => $b['nama_barang'],
+        'satuan' => $b['satuan']
+    ];
+}
+?>
+
 <div class="modal fade" id="modalTambah" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <form method="post" action="add.php" class="modal-content">
@@ -128,16 +157,10 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                         <tbody>
                             <tr>
                                 <td>
-                                    <select name="id_barang[]" class="form-select" required>
-                                        <option value="">-- Pilih Barang --</option>
-                                        <?php $barang->data_seek(0);
-                                        while ($b = $barang->fetch_assoc()): ?>
-                                            <option value="<?= $b['id'] ?>"><?= htmlspecialchars($b['nama_barang'] . ' - ' . $b['satuan']) ?></option>
-                                        <?php endwhile; ?>
-                                    </select>
+                                    <select name="id_barang[]" class="form-select" required onchange="renderDropdownOptions()"></select>
                                 </td>
                                 <td>
-                                    <input type="number" name="jumlah[]" class="form-control" min="1" value="1" required>
+                                    <input type="number" name="jumlah[]" class="form-control" value="1" min="1" required>
                                 </td>
                                 <td>
                                     <button type="button" class="btn btn-sm btn-outline-danger btnHapusRow d-flex align-items-center gap-1">
@@ -145,7 +168,6 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                     </button>
                                 </td>
                             </tr>
-
                         </tbody>
                     </table>
                 </div>
@@ -155,8 +177,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
             </div>
 
             <div class="modal-footer">
-                <button type="submit" class="btn btn-primary">Simpan</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button class="btn btn-primary"><i class="fe fe-save me-1"></i> Simpan</button>
             </div>
         </form>
     </div>
@@ -169,6 +190,7 @@ require_once LAYOUTS_PATH . '/scripts.php';
 ?>
 
 <script>
+    // Filter pencarian pada tabel
     document.getElementById("searchBox").addEventListener("keyup", function() {
         const filter = this.value.toLowerCase();
         document.querySelectorAll("#tabel-pengiriman tbody tr").forEach(row => {
@@ -176,35 +198,59 @@ require_once LAYOUTS_PATH . '/scripts.php';
         });
     });
 
-    document.getElementById("btnTambahBaris").addEventListener("click", function() {
+    // Daftar barang dari PHP
+    const BARANG_OPTIONS = <?= json_encode($optionList) ?>;
+
+    // Render ulang dropdown agar tidak ada barang duplikat
+    function renderDropdownOptions() {
+        const selects = document.querySelectorAll("select[name='id_barang[]']");
+        const selectedIds = [...selects].map(s => s.value).filter(v => v !== "");
+
+        selects.forEach(select => {
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">-- Pilih Barang --</option>';
+
+            BARANG_OPTIONS.forEach(opt => {
+                const isUsed = selectedIds.includes(String(opt.id)) && String(opt.id) !== currentValue;
+                if (!isUsed || String(opt.id) === currentValue) {
+                    const option = document.createElement("option");
+                    option.value = opt.id;
+                    option.textContent = `${opt.nama_barang} - ${opt.satuan}`;
+                    if (String(opt.id) === currentValue) option.selected = true;
+                    select.appendChild(option);
+                }
+            });
+        });
+    }
+
+    // Tambah baris barang
+    document.getElementById("btnTambahBaris").addEventListener("click", () => {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td>
-            <select name="id_barang[]" class="form-select" required>
-            <option value="">-- Pilih Barang --</option>
-            <?php $barang->data_seek(0);
-            while ($b = $barang->fetch_assoc()): ?>
-                <option value="<?= $b['id'] ?>"><?= htmlspecialchars($b['nama_barang'] . ' - ' . $b['satuan']) ?></option>
-            <?php endwhile; ?>
-            </select>
-        </td>
-        <td>
-            <input type="number" name="jumlah[]" class="form-control" value="1" min="1" required>
-        </td>
-        <td>
-            <button type="button" class="btn btn-sm btn-outline-danger btnHapusRow d-flex align-items-center gap-1">
-            <i class="fe fe-trash-2"></i> Hapus
-            </button>
-        </td>
+                <select name="id_barang[]" class="form-select" required onchange="renderDropdownOptions()"></select>
+            </td>
+            <td>
+                <input type="number" name="jumlah[]" class="form-control" value="1" min="1" required>
+            </td>
+            <td>
+                <button type="button" class="btn btn-sm btn-outline-danger btnHapusRow d-flex align-items-center gap-1">
+                    <i class="fe fe-trash-2"></i> Hapus
+                </button>
+            </td>
         `;
-
         document.querySelector("#tabel-barang tbody").appendChild(row);
+        renderDropdownOptions();
     });
 
-
+    // Hapus baris barang
     document.addEventListener("click", function(e) {
-        if (e.target.classList.contains("btnHapusRow")) {
+        if (e.target.closest(".btnHapusRow")) {
             e.target.closest("tr").remove();
+            renderDropdownOptions();
         }
     });
+
+    // Render awal saat halaman selesai dimuat
+    document.addEventListener("DOMContentLoaded", renderDropdownOptions);
 </script>

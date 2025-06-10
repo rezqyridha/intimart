@@ -3,34 +3,30 @@ require_once '../../../config/constants.php';
 require_once CONFIG_PATH . '/koneksi.php';
 require_once AUTH_PATH . '/session.php';
 
-$id_barang = trim($_POST['id_barang'] ?? '');
-$jumlah    = trim($_POST['jumlah'] ?? '');
-$tanggal   = trim($_POST['tanggal'] ?? '');
+// Ambil data dari form
+$id_barang        = trim($_POST['id_barang'] ?? '');
+$id_sales         = trim($_POST['id_sales'] ?? '');
+$tanggal          = trim($_POST['tanggal'] ?? '');
+$jumlah           = trim($_POST['jumlah'] ?? '');
+$harga_total      = trim($_POST['harga_total'] ?? '');
+$status_pelunasan = trim($_POST['status_pelunasan'] ?? 'belum lunas');
 
-if ($id_barang === '' || $jumlah === '' || $tanggal === '' || !is_numeric($jumlah) || $jumlah <= 0) {
+// Validasi input dasar
+if ($id_barang === '' || $id_sales === '' || $tanggal === '' || $jumlah === '' || $harga_total === '') {
     header("Location: index.php?msg=kosong&obj=penjualan");
     exit;
 }
 
-// Ambil harga jual
-$stmt = $koneksi->prepare("SELECT harga_jual FROM barang WHERE id = ?");
-$stmt->bind_param("i", $id_barang);
-$stmt->execute();
-$result = $stmt->get_result();
-$data_barang = $result->fetch_assoc();
-
-if (!$data_barang) {
+// Validasi numerik
+if (!is_numeric($jumlah) || $jumlah <= 0 || !is_numeric($harga_total) || $harga_total <= 0) {
     header("Location: index.php?msg=invalid&obj=penjualan");
     exit;
 }
 
-$harga_jual = $data_barang['harga_jual'];
-
-// Hitung stok masuk
+// Validasi stok tersedia
 $qMasuk = $koneksi->query("SELECT SUM(jumlah) AS total FROM barang_masuk WHERE id_barang = $id_barang");
 $stok_masuk = (int) ($qMasuk->fetch_assoc()['total'] ?? 0);
 
-// Hitung total barang keluar (manual + penjualan)
 $qKeluar = $koneksi->query("SELECT SUM(jumlah) AS total FROM barang_keluar WHERE id_barang = $id_barang");
 $stok_keluar_manual = (int) ($qKeluar->fetch_assoc()['total'] ?? 0);
 
@@ -44,13 +40,11 @@ if ($jumlah > $stok_tersedia) {
     exit;
 }
 
-$harga_total = $jumlah * $harga_jual;
+// Simpan ke DB
+$stmt = $koneksi->prepare("INSERT INTO penjualan (id_barang, id_sales, tanggal, jumlah, harga_total, status_pelunasan) VALUES (?, ?, ?, ?, ?, ?)");
+$stmt->bind_param("iisids", $id_barang, $id_sales, $tanggal, $jumlah, $harga_total, $status_pelunasan);
 
-// Simpan data penjualan
-$stmt_insert = $koneksi->prepare("INSERT INTO penjualan (id_barang, jumlah, total, tanggal) VALUES (?, ?, ?, ?)");
-$stmt_insert->bind_param("iids", $id_barang, $jumlah, $harga_total, $tanggal);
-
-if ($stmt_insert->execute()) {
+if ($stmt->execute()) {
     header("Location: index.php?msg=added&obj=penjualan");
 } else {
     header("Location: index.php?msg=failed&obj=penjualan");

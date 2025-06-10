@@ -9,6 +9,7 @@ if (!in_array($role, ['admin', 'karyawan'])) {
     exit;
 }
 
+// Ambil data stok fisik termasuk koreksi dan stok sistem
 $query = "
     SELECT sf.*, b.nama_barang, b.satuan, u.nama_lengkap AS user_input
     FROM stok_fisik sf
@@ -46,8 +47,11 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                 <th>Barang</th>
                                 <th>Lokasi</th>
                                 <th>Jumlah Fisik</th>
+                                <th>Stok Sistem</th>
+                                <th>Selisih</th>
                                 <th>Tanggal</th>
                                 <th>Oleh</th>
+                                <th>Koreksi?</th>
                                 <?php if ($role === 'admin'): ?>
                                     <th class="text-center">Aksi</th>
                                 <?php endif; ?>
@@ -61,11 +65,27 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                     <td><?= htmlspecialchars($row['nama_barang']) ?> (<?= $row['satuan'] ?>)</td>
                                     <td><?= htmlspecialchars($row['lokasi']) ?></td>
                                     <td><?= $row['jumlah_fisik'] ?></td>
+                                    <td><?= is_numeric($row['stok_sistem']) ? $row['stok_sistem'] : '-' ?></td>
+                                    <td>
+                                        <?php
+                                        if (is_numeric($row['stok_sistem'])) {
+                                            echo $row['stok_sistem'] - $row['jumlah_fisik'];
+                                        } else {
+                                            echo '-';
+                                        }
+                                        ?>
+                                    </td>
                                     <td><?= date('d/m/Y', strtotime($row['tanggal'])) ?></td>
                                     <td><?= htmlspecialchars($row['user_input'] ?? '-') ?></td>
+                                    <td class="text-center">
+                                        <?= $row['koreksi'] ? '<i class="fe fe-check text-success"></i>' : '-' ?>
+                                    </td>
                                     <?php if ($role === 'admin'): ?>
                                         <td class="text-center">
-                                            <button onclick="confirmDelete('delete.php?id=<?= $row['id'] ?>')" class="btn btn-sm btn-danger btn-icon">
+                                            <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-icon btn-warning me-1" title="Edit">
+                                                <i class="fe fe-edit"></i>
+                                            </a>
+                                            <button onclick="confirmDelete('delete.php?id=<?= $row['id'] ?>')" class="btn btn-sm btn-danger btn-icon" title="Hapus">
                                                 <i class="fe fe-trash-2"></i>
                                             </button>
                                         </td>
@@ -80,61 +100,73 @@ require_once LAYOUTS_PATH . '/sidebar.php';
     </div>
 </div>
 
-<!-- Modal Tambah -->
-<div class="modal fade" id="modalTambah" tabindex="-1">
-    <div class="modal-dialog">
-        <form method="post" action="add.php" class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Tambah Stok Fisik</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label">Barang</label>
-                    <select name="id_barang" class="form-select" required>
-                        <option value="">-- Pilih Barang --</option>
-                        <?php
-                        $barang = $koneksi->query("SELECT id, nama_barang, satuan FROM barang ORDER BY nama_barang ASC");
-                        while ($b = $barang->fetch_assoc()):
-                        ?>
-                            <option value="<?= $b['id'] ?>"><?= htmlspecialchars($b['nama_barang']) ?> (<?= $b['satuan'] ?>)</option>
-                        <?php endwhile; ?>
-                    </select>
+<!-- Modal Tambah Data Stok Fisik -->
+<div class="modal fade" id="modalTambah" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form action="add.php" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTambahLabel">Tambah Data Stok Fisik</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Jumlah Fisik</label>
-                    <input type="number" name="jumlah_fisik" class="form-control" required>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="id_barang" class="form-label">Barang</label>
+                        <select name="id_barang" id="id_barang" class="form-select" required>
+                            <option value="">-- Pilih Barang --</option>
+                            <?php
+                            $barangList = $koneksi->query("SELECT id, nama_barang, satuan FROM barang ORDER BY nama_barang ASC");
+                            while ($b = $barangList->fetch_assoc()):
+                            ?>
+                                <option value="<?= $b['id'] ?>">
+                                    <?= htmlspecialchars($b['nama_barang']) ?> (<?= $b['satuan'] ?>)
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="jumlah_fisik" class="form-label">Jumlah Fisik</label>
+                        <input type="number" name="jumlah_fisik" id="jumlah_fisik" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lokasi" class="form-label">Lokasi</label>
+                        <input type="text" name="lokasi" id="lokasi" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tanggal" class="form-label">Tanggal</label>
+                        <input type="date" name="tanggal" id="tanggal" class="form-control" required value="<?= date('Y-m-d') ?>">
+                    </div>
+                    <div class="mb-3">
+                        <label for="keterangan" class="form-label">Keterangan</label>
+                        <textarea name="keterangan" id="keterangan" class="form-control"></textarea>
+                    </div>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" name="koreksi" id="koreksi">
+                        <label class="form-check-label" for="koreksi">
+                            Tandai sebagai koreksi stok sistem
+                        </label>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Lokasi</label>
-                    <input type="text" name="lokasi" class="form-control" required>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fe fe-save"></i> Simpan
+                    </button>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Tanggal</label>
-                    <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Keterangan (opsional)</label>
-                    <textarea name="keterangan" class="form-control" rows="2" placeholder="Contoh: hasil pengecekan gudang..."></textarea>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button class="btn btn-primary">Simpan</button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 
+
 <?php require_once LAYOUTS_PATH . '/footer.php'; ?>
 <?php require_once LAYOUTS_PATH . '/scripts.php'; ?>
-
 <script>
     document.getElementById("searchBox").addEventListener("keyup", function() {
         const filter = this.value.toLowerCase();
-        document.querySelectorAll("#tabel-stokfisik tbody tr").forEach(row => {
-            row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
+        const rows = document.querySelectorAll("#tabel-stokfisik tbody tr");
+        rows.forEach(row => {
+            const match = [...row.cells].some(td => td.textContent.toLowerCase().includes(filter));
+            row.style.display = match ? "" : "none";
         });
     });
 </script>
