@@ -3,6 +3,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/config/constants.php';
 require_once CONFIG_PATH . '/koneksi.php';
 require_once AUTH_PATH . '/session.php';
 
+// Hanya admin yang boleh menghapus
 if ($_SESSION['role'] !== 'admin') {
     header("Location: index.php?msg=unauthorized&obj=rekonsiliasi");
     exit;
@@ -14,7 +15,8 @@ if ($id <= 0) {
     exit;
 }
 
-$cek = $koneksi->prepare("SELECT status FROM rekonsiliasi_pembayaran WHERE id = ?");
+// Cek status finalisasi data
+$cek = $koneksi->prepare("SELECT is_final FROM rekonsiliasi_pembayaran WHERE id = ?");
 $cek->bind_param("i", $id);
 $cek->execute();
 $res = $cek->get_result()->fetch_assoc();
@@ -24,11 +26,13 @@ if (!$res) {
     exit;
 }
 
-if ($res['status'] === 'sudah_rekonsiliasi') {
+// ❌ Jika sudah final → tidak bisa dihapus
+if ($res['is_final'] == 1) {
     header("Location: index.php?msg=locked&obj=rekonsiliasi");
     exit;
 }
 
+// Lanjutkan hapus
 $stmt = $koneksi->prepare("DELETE FROM rekonsiliasi_pembayaran WHERE id = ?");
 $stmt->bind_param("i", $id);
 $stmt->execute();

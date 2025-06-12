@@ -8,7 +8,7 @@ if ($_SESSION['role'] !== 'admin') {
     exit;
 }
 
-// 🔄 Submit form: Update
+//  Proses Finalisasi oleh Admin (POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id      = intval($_POST['id'] ?? 0);
     $catatan = trim($_POST['catatan'] ?? '');
@@ -19,20 +19,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // 🚫 Cek jika data sudah final
-    $cek = $koneksi->prepare("SELECT status FROM rekonsiliasi_pembayaran WHERE id = ?");
+    //  Cek apakah sudah final
+    $cek = $koneksi->prepare("SELECT is_final FROM rekonsiliasi_pembayaran WHERE id = ?");
     $cek->bind_param("i", $id);
     $cek->execute();
     $result = $cek->get_result();
     $old = $result->fetch_assoc();
 
-    if (!$old || $old['status'] === 'sudah_rekonsiliasi') {
+    if (!$old || $old['is_final'] == 1) {
         header("Location: index.php?msg=locked&obj=rekonsiliasi");
         exit;
     }
 
-    // ✅ Update
-    $stmt = $koneksi->prepare("UPDATE rekonsiliasi_pembayaran SET catatan = ?, status = ? WHERE id = ?");
+    //  Finalisasi rekonsiliasi
+    $stmt = $koneksi->prepare("
+        UPDATE rekonsiliasi_pembayaran
+        SET catatan = ?, status = ?, is_final = 1
+        WHERE id = ?
+    ");
     $stmt->bind_param("ssi", $catatan, $status, $id);
     $stmt->execute();
 
@@ -44,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-// 📄 Tampilkan form edit
+//  Ambil data untuk form (GET)
 $id = intval($_GET['id'] ?? 0);
 if ($id <= 0) {
     header("Location: index.php?msg=invalid&obj=rekonsiliasi");
@@ -68,11 +72,13 @@ if (!$data) {
     exit;
 }
 
-if ($data['status'] === 'sudah_rekonsiliasi') {
+//  Blokir form jika data sudah final
+if ($data['is_final'] == 1) {
     header("Location: index.php?msg=locked&obj=rekonsiliasi");
     exit;
 }
 
+// === Tampilan Form ===
 require_once LAYOUTS_PATH . '/head.php';
 require_once LAYOUTS_PATH . '/header.php';
 require_once LAYOUTS_PATH . '/topbar.php';
@@ -83,7 +89,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
     <div class="container-fluid">
         <div class="card custom-card mt-5">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Edit Rekonsiliasi Pembayaran</h5>
+                <h5 class="card-title mb-0">Finalisasi Rekonsiliasi Pembayaran</h5>
                 <a href="index.php" class="btn btn-sm btn-dark">← Kembali</a>
             </div>
 
@@ -112,7 +118,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                 </div>
 
                 <div class="card-footer text-end">
-                    <button class="btn btn-primary"><i class="fe fe-save me-1"></i> Simpan Perubahan</button>
+                    <button class="btn btn-primary"><i class="fe fe-save me-1"></i> Simpan Finalisasi</button>
                 </div>
             </form>
         </div>
