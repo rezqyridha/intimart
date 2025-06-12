@@ -20,10 +20,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // 🚫 Cek jika data sudah final
-    $cekStatus = $koneksi->prepare("SELECT status FROM rekonsiliasi_pembayaran WHERE id = ?");
-    $cekStatus->bind_param("i", $id);
-    $cekStatus->execute();
-    $old = $cekStatus->get_result()->fetch_assoc();
+    $cek = $koneksi->prepare("SELECT status FROM rekonsiliasi_pembayaran WHERE id = ?");
+    $cek->bind_param("i", $id);
+    $cek->execute();
+    $result = $cek->get_result();
+    $old = $result->fetch_assoc();
 
     if (!$old || $old['status'] === 'sudah_rekonsiliasi') {
         header("Location: index.php?msg=locked&obj=rekonsiliasi");
@@ -33,18 +34,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ✅ Update
     $stmt = $koneksi->prepare("UPDATE rekonsiliasi_pembayaran SET catatan = ?, status = ? WHERE id = ?");
     $stmt->bind_param("ssi", $catatan, $status, $id);
+    $stmt->execute();
 
-    if ($stmt->execute()) {
+    if ($stmt->affected_rows > 0) {
         header("Location: index.php?msg=updated&obj=rekonsiliasi");
     } else {
-        header("Location: edit.php?id=$id&msg=failed&obj=rekonsiliasi");
+        header("Location: edit.php?id=$id&msg=nochange&obj=rekonsiliasi");
     }
     exit;
 }
 
-// 📄 GET: Tampilkan form edit
-$id = $_GET['id'] ?? '';
-if (!is_numeric($id) || $id === '') {
+// 📄 Tampilkan form edit
+$id = intval($_GET['id'] ?? 0);
+if ($id <= 0) {
     header("Location: index.php?msg=invalid&obj=rekonsiliasi");
     exit;
 }

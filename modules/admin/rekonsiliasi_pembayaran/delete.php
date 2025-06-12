@@ -8,13 +8,12 @@ if ($_SESSION['role'] !== 'admin') {
     exit;
 }
 
-$id = $_GET['id'] ?? '';
-if (!is_numeric($id) || $id === '') {
+$id = intval($_GET['id'] ?? 0);
+if ($id <= 0) {
     header("Location: index.php?msg=invalid&obj=rekonsiliasi");
     exit;
 }
 
-// Cek status terlebih dahulu
 $cek = $koneksi->prepare("SELECT status FROM rekonsiliasi_pembayaran WHERE id = ?");
 $cek->bind_param("i", $id);
 $cek->execute();
@@ -30,11 +29,11 @@ if ($res['status'] === 'sudah_rekonsiliasi') {
     exit;
 }
 
-// Hapus jika valid
 $stmt = $koneksi->prepare("DELETE FROM rekonsiliasi_pembayaran WHERE id = ?");
 $stmt->bind_param("i", $id);
+$stmt->execute();
 
-if ($stmt->execute()) {
+if ($stmt->affected_rows > 0) {
     header("Location: index.php?msg=deleted&obj=rekonsiliasi");
 } else {
     header("Location: index.php?msg=fk_blocked&obj=rekonsiliasi");

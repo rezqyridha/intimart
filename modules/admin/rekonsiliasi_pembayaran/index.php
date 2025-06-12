@@ -97,8 +97,8 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                     <td>
                                         <?php
                                         $badge = match ($row['status']) {
-                                            'belum_rekonsiliasi' => 'secondary',
-                                            'sudah_rekonsiliasi' => 'success',
+                                            'tidak sesuai' => 'secondary',
+                                            'sesuai' => 'success',
                                             default => 'dark'
                                         };
                                         ?>

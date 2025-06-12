@@ -20,8 +20,32 @@ $menuFile = __DIR__ . "/menu_$role.php";
             </div>
         </div>
 
-        <!-- Kanan: Profil pengguna -->
+
         <div class="header-content-right">
+            <!-- 🔔 Notifikasi Stok Menipis -->
+            <div class="header-element dropdown">
+                <a class="header-link dropdown-toggle" href="#" id="stokNotifDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fe fe-bell fs-20 position-relative">
+                        <span id="notif-stok-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger text-white" style="font-size: 11px; min-width: 18px; height: 18px; line-height: 18px; padding: 0;">0</span>
+                    </i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-end shadow-lg p-0 border-0" style="width: 320px;" id="stokNotifDropdownContent">
+                    <div class="px-3 pt-3 pb-2 border-bottom">
+                        <h6 class="fw-semibold mb-0"><i class="ti-alert text-warning me-2"></i>Stok Menipis</h6>
+                    </div>
+                    <div class="notif-body max-h-300px overflow-auto" id="stokNotifBody">
+                        <div class="text-muted text-center py-3">Memuat...</div>
+                    </div>
+                    <div class="text-center border-top py-2">
+                        <a href="<?= BASE_URL ?>/modules/shared/notifikasi_stok/index.php" class="text-primary fw-semibold text-decoration-none">Lihat Semua</a>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+            <!-- Kanan: Profil pengguna -->
             <div class="header-element">
                 <a href="javascript:void(0);" class="header-link dropdown-toggle" id="mainHeaderProfile" data-bs-toggle="dropdown" aria-expanded="false">
                     <div class="d-flex align-items-center">
@@ -34,7 +58,7 @@ $menuFile = __DIR__ . "/menu_$role.php";
                     <li>
                         <div class="header-navheading border-bottom">
                             <h6 class="main-notification-title mb-0">Nama : <?= $_SESSION['nama_lengkap'] ?? 'User'; ?></h6>
-                            <p class="main-notification-text mb-0">Jabatan : <?= ucfirst($_SESSION['role']) ?? ''; ?></p>
+                            <p class="main-notification-text mb-0">Posis : <?= ucfirst($_SESSION['role']) ?? ''; ?></p>
                         </div>
                     </li>
                     <!-- Tambahkan item menu tambahan di masa depan jika dibutuhkan -->
@@ -42,6 +66,7 @@ $menuFile = __DIR__ . "/menu_$role.php";
                     <li><a class="dropdown-item d-flex" href="<?= BASE_URL ?>/auth/logout.php"><i class="fe fe-power fs-16 me-2"></i>Logout</a></li>
                 </ul>
             </div>
+
         </div>
     </div>
 </header>

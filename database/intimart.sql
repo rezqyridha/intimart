@@ -188,7 +188,7 @@ CREATE TABLE IF NOT EXISTS `pembayaran` (
   CONSTRAINT `pembayaran_ibfk_1` FOREIGN KEY (`id_penjualan`) REFERENCES `penjualan` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dumping data for table intimart.pembayaran: ~3 rows (approximately)
+-- Dumping data for table intimart.pembayaran: ~2 rows (approximately)
 INSERT INTO `pembayaran` (`id`, `id_penjualan`, `metode`, `keterangan`, `tanggal`, `jumlah_bayar`) VALUES
 	(1, 1, 'tunai', NULL, '2025-06-06', 30000),
 	(3, 2, 'transfer', 'test edit dari belum lunas ke lunas', '2025-06-10', 32500);
@@ -300,7 +300,7 @@ CREATE TABLE IF NOT EXISTS `produk_tidak_laku` (
   PRIMARY KEY (`id`),
   KEY `id_barang` (`id_barang`),
   CONSTRAINT `produk_tidak_laku_ibfk_1` FOREIGN KEY (`id_barang`) REFERENCES `barang` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table intimart.produk_tidak_laku: ~3 rows (approximately)
 INSERT INTO `produk_tidak_laku` (`id`, `id_barang`, `periode_awal`, `periode_akhir`, `jumlah_terjual`, `keterangan`, `status`, `created_at`) VALUES
@@ -318,11 +318,11 @@ CREATE TABLE IF NOT EXISTS `rekonsiliasi_pembayaran` (
   PRIMARY KEY (`id`),
   KEY `id_pembayaran` (`id_pembayaran`),
   CONSTRAINT `rekonsiliasi_pembayaran_ibfk_1` FOREIGN KEY (`id_pembayaran`) REFERENCES `pembayaran` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dumping data for table intimart.rekonsiliasi_pembayaran: ~2 rows (approximately)
+-- Dumping data for table intimart.rekonsiliasi_pembayaran: ~1 rows (approximately)
 INSERT INTO `rekonsiliasi_pembayaran` (`id`, `id_pembayaran`, `status`, `catatan`, `tanggal_rekonsiliasi`) VALUES
-	(1, 1, 'sesuai', 'Sesuai dengan invoice', '2025-06-09 03:13:07');
+	(5, 3, 'sesuai', 'sesuai invoice', '2025-06-12 03:45:34');
 
 -- Dumping structure for table intimart.restok_supplier
 CREATE TABLE IF NOT EXISTS `restok_supplier` (

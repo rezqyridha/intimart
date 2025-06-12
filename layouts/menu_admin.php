@@ -96,12 +96,12 @@ $current_uri = $_SERVER['REQUEST_URI'];
 
         <!-- NOTIFIKASI -->
         <li class="slide__category"><span class="category-name">Notifikasi</span></li>
-        <li class="slide <?= str_contains($current_uri, '/stok_minimum') ? 'active' : '' ?>">
-            <a href="<?= BASE_URL ?>/modules/notifikasi/stok_minimum.php" class="side-menu__item">
-                <i class="ti-alert side-menu__icon"></i>
-                <span class="side-menu__label">Stok Menipis</span>
-                <span class="badge bg-danger rounded-pill ms-auto" id="notif-stok">3</span>
-            </a>
+        <!-- <li class="slide <?= str_contains($current_uri, '/notifikasi_stok/index.php') ? 'active' : '' ?>">-->
+        <a href="<?= BASE_URL ?>/modules/shared/notifikasi_stok/index.php" class="side-menu__item">
+            <i class="ti-alert side-menu__icon"></i>
+            <span class="side-menu__label">Stok Menipis</span>
+            <span class="badge bg-danger rounded-pill ms-auto" id="notif-stok" style="display:none;"></span>
+        </a>
         </li>
 
     </ul>

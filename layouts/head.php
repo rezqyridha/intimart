@@ -37,4 +37,59 @@ require_once CONFIG_PATH . '/constants.php';
     <!-- JS awal (optional preload) -->
     <script src="<?= ASSETS_URL ?>/libs/choices.js/public/assets/scripts/choices.min.js"></script>
     <script src="<?= ASSETS_URL ?>/js/main.js"></script>
+    <style>
+        .notif-body .notif-item {
+            padding: 8px 16px;
+            border-bottom: 1px solid #f1f1f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            transition: background-color 0.2s ease;
+        }
+
+        .notif-body .notif-item:hover {
+            background-color: #f8f9fc;
+        }
+
+        .notif-body .stok-badge {
+            font-weight: bold;
+            color: #dc3545;
+            /* merah */
+        }
+
+        .notif-body.max-h-300px {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* Optional: custom scrollbar */
+        .notif-body::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .notif-body::-webkit-scrollbar-thumb {
+            background-color: #ccc;
+            border-radius: 3px;
+        }
+
+        .highlight-row {
+            animation: fadeHighlight 2.5s ease-in-out;
+        }
+
+        @keyframes fadeHighlight {
+            0% {
+                background-color: #fff3cd;
+            }
+
+            50% {
+                background-color: #ffeeba;
+            }
+
+            100% {
+                background-color: transparent;
+            }
+        }
+    </style>
+
 </head>
