@@ -1,3 +1,6 @@
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
 <!-- JavaScript Files -->
 <script src="<?= ASSETS_URL ?>/libs/@popperjs/core/umd/popper.min.js"></script>
 <script src="<?= ASSETS_URL ?>/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -13,8 +16,6 @@
 <script src="<?= ASSETS_URL ?>/js/custom-switcher.min.js"></script>
 <script src="<?= ASSETS_URL ?>/js/custom.js"></script>
 
-<!-- jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.min.js"></script>

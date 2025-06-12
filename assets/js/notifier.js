@@ -75,6 +75,11 @@ document.addEventListener("DOMContentLoaded", () => {
             title: "Jumlah Melebihi",
             text: "", // akan diganti dinamis nanti
         },
+        locked: {
+            icon: "warning",
+            title: "Jumlah Melebihi",
+            text: getLockedText(obj),
+        },
         nochange: {
             icon: "info",
             title: "Tidak Ada Perubahan",
@@ -104,6 +109,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // === Global handler untuk seluruh modul Intimart ===
 
+function getLockedText(obj) {
+    switch (obj) {
+        case "rekonsiliasi":
+            return "Data tidak bisa diubah karena sudah direkonsiliasi.";
+    }
+}
+
 function getDuplicateText(obj) {
     const map = {
         barang: "Barang sudah terdaftar.",
@@ -120,6 +132,8 @@ function getDuplicateText(obj) {
         laporan: "Laporan sudah pernah dibuat.",
         notifikasi: "Notifikasi serupa sudah dikirim.",
         target: "Target sudah ditetapkan sebelumnya.",
+        tidaklaku: "Produk sudah ada pada periode yang sama.",
+        rekonsiliasi: "Pembayaran ini sudah direkonsiliasi sebelumnya.",
     };
     return map[obj] || "Data yang Anda masukkan sudah ada.";
 }
@@ -135,6 +149,8 @@ function getKosongText(obj) {
         pembayaran: "Lengkapi detail pembayaran.",
         pelanggan: "Data pelanggan wajib diisi.",
         supplier: "Field supplier tidak boleh kosong.",
+        tidaklaku: "Lengkapi semua kolom laporan produk tidak laku.",
+        rekonsiliasi: "Semua field wajib diisi untuk menyimpan rekonsiliasi.",
     };
     return map[obj] || "Harap lengkapi semua field yang dibutuhkan.";
 }
