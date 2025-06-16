@@ -151,6 +151,18 @@ function getKosongText(obj) {
         supplier: "Field supplier tidak boleh kosong.",
         tidaklaku: "Lengkapi semua kolom laporan produk tidak laku.",
         rekonsiliasi: "Semua field wajib diisi untuk menyimpan rekonsiliasi.",
+        kas: "Field transaksi kas wajib diisi.",
+        produk: "Semua field produk harus diisi.",
+        sales: "Data sales harus lengkap.",
+        pembayaran_penjualan: "Lengkapi detail pembayaran penjualan.",
+        pembayaran_retur: "Lengkapi detail pembayaran retur.",
+        pengeluaran: "Lengkapi semua field pengeluaran.",
+        pemasukan: "Lengkapi semua field pemasukan.",
+        transaksi: "Semua field transaksi harus diisi.",
+        laporan: "Semua field laporan harus diisi.",
+        notifikasi: "Semua field notifikasi harus diisi.",
+        target: "Semua field target harus diisi.",
+        stok: "Semua field stok harus diisi.",
     };
     return map[obj] || "Harap lengkapi semua field yang dibutuhkan.";
 }
@@ -165,6 +177,19 @@ function getInvalidText(obj) {
         pengiriman: "Pengiriman tidak ditemukan.",
         retur: "Retur tidak ditemukan.",
         pembayaran: "Pembayaran tidak ditemukan.",
+        kas: "Transaksi kas tidak valid.",
+        produk: "Produk tidak ditemukan.",
+        sales: "Sales tidak ditemukan.",
+        pembayaran_penjualan: "Pembayaran penjualan tidak valid.",
+        pembayaran_retur: "Pembayaran retur tidak valid.",
+        pengeluaran: "Pengeluaran tidak valid.",
+        pemasukan: "Pemasukan tidak valid.",
+        transaksi: "Transaksi tidak valid.",
+        laporan: "Laporan tidak ditemukan.",
+        notifikasi: "Notifikasi tidak ditemukan.",
+        target: "Target tidak ditemukan.",
+        tidaklaku: "Laporan produk tidak laku tidak ditemukan.",
+        rekonsiliasi: "Rekonsiliasi tidak ditemukan.",
     };
     return map[obj] || "Data tidak valid atau tidak ditemukan.";
 }
@@ -178,6 +203,27 @@ function getFKBlockedText(obj) {
         supplier: "Supplier sudah digunakan di pembelian.",
         penjualan: "Penjualan sudah tercatat di laporan.",
         pengiriman: "Pengiriman sudah digunakan.",
+        retur: "Retur tidak dapat dihapus karena terkait dengan penjualan.",
+        pembayaran:
+            "Pembayaran tidak dapat dihapus karena terkait dengan penjualan atau retur.",
+        laporan: "Laporan tidak dapat dihapus karena sudah dibuat.",
+        notifikasi: "Notifikasi tidak dapat dihapus karena sudah dikirim.",
+        target: "Target tidak dapat dihapus karena sudah digunakan di laporan.",
+        tidaklaku:
+            "Laporan produk tidak laku tidak dapat dihapus karena sudah digunakan.",
+        rekonsiliasi:
+            "Rekonsiliasi tidak dapat dihapus karena sudah direkonsiliasi.",
+        kas: "Transaksi kas tidak dapat dihapus karena sudah tercatat.",
+        stok: "Stok tidak dapat dihapus karena terkait dengan barang atau gudang.",
+        produk: "Produk tidak dapat dihapus karena terkait dengan penjualan atau retur.",
+        sales: "Sales tidak dapat dihapus karena terkait dengan penjualan.",
+        pembayaran_penjualan:
+            "Pembayaran penjualan tidak dapat dihapus karena sudah tercatat.",
+        pembayaran_retur:
+            "Pembayaran retur tidak dapat dihapus karena sudah tercatat.",
+        pengeluaran: "Pengeluaran tidak dapat dihapus karena sudah tercatat.",
+        pemasukan: "Pemasukan tidak dapat dihapus karena sudah tercatat.",
+        transaksi: "Transaksi tidak dapat dihapus karena sudah tercatat.",
     };
     return (
         map[obj] || "Data tidak dapat dihapus karena digunakan di modul lain."
@@ -190,8 +236,6 @@ function getUnauthorizedText(obj) {
         pegawai: "Anda tidak diizinkan mengakses data pegawai.",
         user: "Anda tidak dapat mengakses manajemen user.",
         laporan: "Anda tidak memiliki izin melihat laporan ini.",
-        spt: "Hanya role tertentu yang dapat mengelola SPT.",
-        sppd: "Anda tidak dapat mengelola SPPD.",
     };
     return map[obj] || "Anda tidak memiliki izin untuk mengakses halaman ini.";
 }
@@ -202,8 +246,23 @@ function getNochangeText(obj) {
         pegawai: "Data pegawai tidak mengalami perubahan.",
         user: "Data user tidak berubah.",
         pelanggan: "Data pelanggan tetap sama.",
-        sppd: "Tidak ada perubahan pada SPPD.",
-        spt: "Tidak ada perubahan pada SPT.",
+        gudang: "Tidak ada perubahan pada data gudang.",
+        supplier: "Data supplier tidak mengalami perubahan.",
+        produk: "Data produk tidak berubah.",
+        sales: "Data sales tidak mengalami perubahan.",
+        penjualan: "Tidak ada perubahan pada data penjualan.",
+        pengiriman: "Data pengiriman tidak berubah.",
+        retur: "Tidak ada perubahan pada data retur.",
+        pembayaran: "Data pembayaran tidak mengalami perubahan.",
+        kas: "Data kas tidak berubah.",
+        pengeluaran: "Data pengeluaran tidak mengalami perubahan.",
+        pemasukan: "Data pemasukan tidak berubah.",
+        transaksi: "Data transaksi tidak mengalami perubahan.",
+        laporan: "Data laporan tidak berubah.",
+        notifikasi: "Tidak ada perubahan pada notifikasi.",
+        target: "Data target tidak mengalami perubahan.",
+        stok: "Data stok tidak berubah.",
+        rekonsiliasi: "Data rekonsiliasi tidak mengalami perubahan.",
     };
     return map[obj] || "Tidak ada perubahan yang dilakukan.";
 }

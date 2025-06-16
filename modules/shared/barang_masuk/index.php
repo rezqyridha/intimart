@@ -5,7 +5,7 @@ require_once CONFIG_PATH . '/koneksi.php';
 
 $role = $_SESSION['role'];
 
-if (!in_array($role, ['admin', 'karyawan'])) {
+if (!in_array($role, ['admin', 'karyawan', 'manajer'])) {
     header("Location: " . BASE_URL . "/notfound.php");
     exit;
 }

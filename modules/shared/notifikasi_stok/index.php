@@ -5,12 +5,12 @@ require_once AUTH_PATH . '/session.php';
 
 // Role yang diizinkan
 $role = $_SESSION['role'];
-if (!in_array($role, ['admin', 'manajer'])) {
+if (!in_array($role, ['admin', 'manajer', 'sales', 'karyawan'])) {
     header("Location: " . BASE_URL . "/unauthorized.php");
     exit;
 }
 
-// Ambil barang yang stoknya menipis (contoh: < 10)
+// Ambil barang yang stoknya menipis (stok akhir < stok minimum)
 $query = "
     SELECT 
         b.id, 
@@ -38,8 +38,6 @@ $query = "
     ORDER BY stok_akhir ASC
 ";
 
-
-
 $result = $koneksi->query($query);
 
 require_once LAYOUTS_PATH . '/head.php';
@@ -62,7 +60,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped table-hover align-middle mb-0">
                             <thead class="table-warning">
-                                <tr id="barang-<?= $row['id'] ?>" class="<?= $row['id'] === $highlightId ? 'table-warning fw-bold highlight-row' : '' ?>">
+                                <tr>
                                     <th>No</th>
                                     <th>Nama Barang</th>
                                     <th>Satuan</th>
@@ -70,9 +68,11 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php $no = 1;
+                                <?php
+                                $no = 1;
                                 $highlightId = isset($_GET['highlight']) ? intval($_GET['highlight']) : 0;
-                                while ($row = $result->fetch_assoc()): ?>
+                                while ($row = $result->fetch_assoc()):
+                                ?>
                                     <tr id="barang-<?= $row['id'] ?>" class="<?= $row['id'] === $highlightId ? 'table-warning fw-bold highlight-row' : '' ?>">
                                         <td><?= $no++ ?></td>
                                         <td><?= htmlspecialchars($row['nama_barang']) ?></td>

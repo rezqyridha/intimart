@@ -4,7 +4,7 @@ require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
 $role = $_SESSION['role'];
-if (!in_array($role, ['admin', 'manajer'])) {
+if (!in_array($role, ['admin', 'manajer', 'karyawan'])) {
     header("Location: " . BASE_URL . "/unauthorized.php");
     exit;
 }
@@ -76,17 +76,18 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                             <?= ucfirst($row['status_pelunasan']) ?>
                                         </span>
                                     </td>
-
-                                    <td class="text-center">
-                                        <div class="btn-list d-flex justify-content-center">
-                                            <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-icon btn-warning me-1" title="Edit">
-                                                <i class="fe fe-edit"></i>
-                                            </a>
-                                            <button onclick="confirmDelete('delete.php?id=<?= $row['id'] ?>')" class="btn btn-sm btn-icon btn-danger" title="Hapus">
-                                                <i class="fe fe-trash-2"></i>
-                                            </button>
-                                        </div>
-                                    </td>
+                                    <?php if ($role === 'admin') : ?>
+                                        <td class="text-center">
+                                            <div class="btn-list d-flex justify-content-center">
+                                                <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-icon btn-warning me-1" title="Edit">
+                                                    <i class="fe fe-edit"></i>
+                                                </a>
+                                                <button onclick="confirmDelete('delete.php?id=<?= $row['id'] ?>')" class="btn btn-sm btn-icon btn-danger" title="Hapus">
+                                                    <i class="fe fe-trash-2"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    <?php endif; ?>
                                 </tr>
                             <?php endwhile; ?>
                         </tbody>

@@ -4,7 +4,7 @@ require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
 $role = $_SESSION['role'];
-if (!in_array($role, ['admin', 'sales', 'manajer'])) {
+if (!in_array($role, ['admin', 'sales', 'manajer', 'karyawan'])) {
     header("Location: " . BASE_URL . "/unauthorized.php");
     exit;
 }

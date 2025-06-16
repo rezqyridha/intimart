@@ -1,25 +1,27 @@
 <?php
-include '../session-start.php'; // Cek session dan pastikan pengguna login
-include '../config.php';       // con$conn ke database
+require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/config/constants.php';
+require_once AUTH_PATH . '/session.php';
+require_once CONFIG_PATH . '/koneksi.php';
 
-// Periksa apakah `id_sppt` telah diterima untuk dihapus
-if (isset($_GET['id_arus_kas']) && is_numeric($_GET['id_arus_kas'])) {
-    $id_arus_kas = intval($_GET['id_arus_kas']); // Memastikan ID adalah integer
-
-    // Siapkan query untuk menghapus data
-    $stmt = $conn->prepare("DELETE FROM arus_kas WHERE id_arus_kas = ?");
-    $stmt->bind_param("i", $id_arus_kas);
-
-    // Eksekusi query
-    if ($stmt->execute()) {
-        echo "<script>alert('Data berhasil dihapus.'); window.location.href='data_arus_kas.php';</script>";
-    } else {
-        echo "<script>alert('Terjadi kesalahan saat menghapus data: " . $stmt->error . "'); window.location.href='data_arus_kas.php';</script>";
-    }
-
-    $stmt->close(); // Tutup statement
-} else {
-    echo "<script>alert('ID tidak ditemukan atau tidak valid.'); window.location.href='data_arus_kas.php';</script>";
+if ($_SESSION['role'] !== 'admin') {
+    header("Location: index.php?msg=unauthorized&obj=kas");
+    exit;
 }
 
-$conn->close();
+$id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+
+if ($id > 0) {
+    $stmt = $koneksi->prepare("DELETE FROM kas WHERE id = ?");
+    $stmt->bind_param("i", $id);
+
+    if ($stmt->execute()) {
+        header("Location: index.php?msg=deleted&obj=kas");
+        exit;
+    } else {
+        header("Location: index.php?msg=fk_blocked&obj=kas");
+        exit;
+    }
+} else {
+    header("Location: index.php?msg=invalid&obj=kas");
+    exit;
+}

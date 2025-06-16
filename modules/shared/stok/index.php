@@ -3,7 +3,11 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/config/constants.php';
 require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
-$role = $_SESSION['role'] ?? null;
+$role = $_SESSION['role'] ?? '';
+if (!in_array($role, ['admin', 'manajer', 'sales', 'karyawan'])) {
+    header("Location: " . BASE_URL . "/unauthorized.php");
+    exit;
+}
 
 // Semua role boleh mengakses modul ini
 $query = "
