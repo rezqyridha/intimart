@@ -31,8 +31,11 @@ if ($ada == 0) {
 // Hapus data
 $stmt = $koneksi->prepare("DELETE FROM barang_keluar WHERE id = ?");
 $stmt->bind_param("i", $id);
-$stmt->execute() ?
-    header("Location: index.php?msg=deleted&obj=barang_keluar") :
+
+if ($stmt->execute()) {
+    header("Location: index.php?msg=deleted&obj=barang_keluar");
+} else {
     header("Location: index.php?msg=failed&obj=barang_keluar");
+}
 $stmt->close();
 exit;

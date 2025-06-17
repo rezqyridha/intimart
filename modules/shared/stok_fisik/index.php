@@ -9,14 +9,16 @@ if (!in_array($role, ['admin', 'karyawan'])) {
     exit;
 }
 
-// Ambil data stok fisik termasuk koreksi dan stok sistem
+// Tambahkan di bagian query
 $query = "
-    SELECT sf.*, b.nama_barang, b.satuan, u.nama_lengkap AS user_input
+    SELECT sf.*, b.nama_barang, b.satuan, u.nama_lengkap AS user_input, g.nama_gudang
     FROM stok_fisik sf
     JOIN barang b ON sf.id_barang = b.id
     LEFT JOIN user u ON sf.id_user = u.id
+    LEFT JOIN gudang g ON sf.id_gudang = g.id
     ORDER BY sf.tanggal DESC
 ";
+
 $result = $koneksi->query($query);
 
 require_once LAYOUTS_PATH . '/head.php';
@@ -45,10 +47,11 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                             <tr>
                                 <th>No</th>
                                 <th>Barang</th>
-                                <th>Lokasi</th>
+                                <th>Gudang</th>
                                 <th>Jumlah Fisik</th>
                                 <th>Stok Sistem</th>
                                 <th>Selisih</th>
+                                <th>Keterangan</th>
                                 <th>Tanggal</th>
                                 <th>Oleh</th>
                                 <th>Koreksi?</th>
@@ -63,7 +66,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                 <tr>
                                     <td><?= $no++ ?></td>
                                     <td><?= htmlspecialchars($row['nama_barang']) ?> (<?= $row['satuan'] ?>)</td>
-                                    <td><?= htmlspecialchars($row['lokasi']) ?></td>
+                                    <td><?= htmlspecialchars($row['nama_gudang'] ?? '-') ?></td>
                                     <td><?= $row['jumlah_fisik'] ?></td>
                                     <td><?= is_numeric($row['stok_sistem']) ? $row['stok_sistem'] : '-' ?></td>
                                     <td>
@@ -75,6 +78,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                         }
                                         ?>
                                     </td>
+                                    <td><?= htmlspecialchars($row['keterangan'] ?? '-') ?></td>
                                     <td><?= date('d/m/Y', strtotime($row['tanggal'])) ?></td>
                                     <td><?= htmlspecialchars($row['user_input'] ?? '-') ?></td>
                                     <td class="text-center">
@@ -82,14 +86,23 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                     </td>
                                     <?php if ($role === 'admin'): ?>
                                         <td class="text-center">
-                                            <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-icon btn-warning me-1" title="Edit">
-                                                <i class="fe fe-edit"></i>
-                                            </a>
-                                            <button onclick="confirmDelete('delete.php?id=<?= $row['id'] ?>')" class="btn btn-sm btn-danger btn-icon" title="Hapus">
-                                                <i class="fe fe-trash-2"></i>
-                                            </button>
+                                            <?php if ($row['koreksi']): ?>
+                                                <span class="badge bg-light text-dark border">
+                                                    <i class="fe fe-lock me-1"></i> Final
+                                                </span>
+                                            <?php else: ?>
+                                                <div class="btn-list d-flex justify-content-center">
+                                                    <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-icon btn-warning me-1" title="Edit">
+                                                        <i class="fe fe-edit"></i>
+                                                    </a>
+                                                    <button onclick="confirmDelete('delete.php?id=<?= $row['id'] ?>')" class="btn btn-sm btn-icon btn-danger" title="Hapus">
+                                                        <i class="fe fe-trash-2"></i>
+                                                    </button>
+                                                </div>
+                                            <?php endif; ?>
                                         </td>
                                     <?php endif; ?>
+
                                 </tr>
                             <?php endwhile; ?>
                         </tbody>
@@ -129,9 +142,18 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                         <input type="number" name="jumlah_fisik" id="jumlah_fisik" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label for="lokasi" class="form-label">Lokasi</label>
-                        <input type="text" name="lokasi" id="lokasi" class="form-control" required>
+                        <label for="id_gudang" class="form-label">Gudang</label>
+                        <select name="id_gudang" id="id_gudang" class="form-select" required>
+                            <option value="">-- Pilih Gudang --</option>
+                            <?php
+                            $gudangList = $koneksi->query("SELECT id, nama_gudang FROM gudang ORDER BY nama_gudang ASC");
+                            while ($g = $gudangList->fetch_assoc()):
+                            ?>
+                                <option value="<?= $g['id'] ?>"><?= htmlspecialchars($g['nama_gudang']) ?></option>
+                            <?php endwhile; ?>
+                        </select>
                     </div>
+
                     <div class="mb-3">
                         <label for="tanggal" class="form-label">Tanggal</label>
                         <input type="date" name="tanggal" id="tanggal" class="form-control" required value="<?= date('Y-m-d') ?>">

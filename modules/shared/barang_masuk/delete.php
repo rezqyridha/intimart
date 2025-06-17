@@ -29,11 +29,11 @@ if ($ada == 0) {
     exit;
 }
 
-// Langsung hapus (tidak digunakan di tabel lain)
+// Hapus data
 $stmt = $koneksi->prepare("DELETE FROM barang_masuk WHERE id = ?");
 $stmt->bind_param("i", $id);
 
-if ($stmt->execute()) {
+if ($stmt->execute() && $stmt->affected_rows > 0) {
     header("Location: index.php?msg=deleted&obj=barang_masuk");
 } else {
     header("Location: index.php?msg=failed&obj=barang_masuk");

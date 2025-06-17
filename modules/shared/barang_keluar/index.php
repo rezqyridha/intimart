@@ -6,9 +6,10 @@ require_once CONFIG_PATH . '/koneksi.php';
 $role = $_SESSION['role'] ?? null;
 
 $query = "
-    SELECT bk.*, b.nama_barang, b.satuan
+    SELECT bk.*, b.nama_barang, b.satuan, g.nama_gudang
     FROM barang_keluar bk
     JOIN barang b ON bk.id_barang = b.id
+    JOIN gudang g ON bk.id_gudang = g.id
     ORDER BY bk.tanggal DESC
 ";
 $result = $koneksi->query($query);
@@ -43,6 +44,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                 <th>Tanggal</th>
                                 <th>Nama Barang</th>
                                 <th>Satuan</th>
+                                <th>Gudang</th>
                                 <th>Jumlah</th>
                                 <th>Jenis</th>
                                 <th>Tujuan</th>
@@ -60,6 +62,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                     <td><?= date('d-m-Y', strtotime($row['tanggal'])) ?></td>
                                     <td><?= htmlspecialchars($row['nama_barang']) ?></td>
                                     <td><?= htmlspecialchars($row['satuan']) ?></td>
+                                    <td><?= htmlspecialchars($row['nama_gudang']) ?></td>
                                     <td><?= $row['jumlah'] ?></td>
                                     <td>
                                         <span class="badge bg-<?= match ($row['jenis']) {
@@ -117,9 +120,22 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                 </select>
                             </div>
 
+                            <div class="col-md-6 mb-3">
+                                <label for="id_gudang" class="form-label">Gudang</label>
+                                <select name="id_gudang" id="id_gudang" class="form-select" required>
+                                    <option value="">-- Pilih Gudang --</option>
+                                    <?php
+                                    $gudangList = $koneksi->query("SELECT id, nama_gudang FROM gudang ORDER BY nama_gudang ASC");
+                                    while ($g = $gudangList->fetch_assoc()) :
+                                    ?>
+                                        <option value="<?= $g['id'] ?>"><?= htmlspecialchars($g['nama_gudang']) ?></option>
+                                    <?php endwhile; ?>
+                                </select>
+                            </div>
+
                             <div class="col-md-3 mb-3">
                                 <label for="tanggal" class="form-label">Tanggal</label>
-                                <input type="date" name="tanggal" class="form-control" required>
+                                <input type="date" name="tanggal" class="form-control" required value="<?= date('Y-m-d') ?>">
                             </div>
 
                             <div class="col-md-3 mb-3">

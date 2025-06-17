@@ -3,7 +3,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/config/constants.php';
 require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
-// ✅ Batasi akses hanya ke admin, manajer, dan sales
+// Batasi akses hanya ke admin, manajer, dan sales
 $role = $_SESSION['role'] ?? '';
 $id_user = $_SESSION['id_user'] ?? 0;
 
@@ -12,13 +12,13 @@ if (!in_array($role, ['admin', 'manajer', 'sales'])) {
     exit;
 }
 
-// ✅ Filter data jika role = sales (lihat hanya miliknya)
+// Filter data jika role = sales (lihat hanya miliknya)
 $whereClause = "";
 if ($role === 'sales') {
     $whereClause = "WHERE j.id_sales = $id_user";
 }
 
-// ✅ Query untuk menampilkan data rekonsiliasi
+// Query untuk menampilkan data rekonsiliasi
 $sqlTabel = "
     SELECT rp.*, b.nama_barang, b.satuan, p.tanggal, p.metode, p.jumlah_bayar
     FROM rekonsiliasi_pembayaran rp
@@ -30,7 +30,7 @@ $sqlTabel = "
 ";
 $dataRekonsiliasi = $koneksi->query($sqlTabel);
 
-// ✅ Query untuk dropdown hanya muncul jika bukan manajer (readonly)
+// Query untuk dropdown hanya muncul jika bukan manajer (readonly)
 $opsi_pembayaran = '';
 if ($role !== 'manajer') {
     $sqlOpsi = "

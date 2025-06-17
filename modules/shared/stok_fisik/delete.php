@@ -14,16 +14,17 @@ if ($id <= 0) {
     exit;
 }
 
-// Cek apakah data stok fisik ada
-$cek = $koneksi->prepare("SELECT COUNT(*) FROM stok_fisik WHERE id = ?");
-$cek->bind_param("i", $id);
-$cek->execute();
-$cek->bind_result($ada);
-$cek->fetch();
-$cek->close();
+// Cek koreksi
+$stmt = $koneksi->prepare("SELECT koreksi FROM stok_fisik WHERE id = ?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$stmt->bind_result($koreksi);
+$stmt->fetch();
+$stmt->close();
 
-if ($ada == 0) {
-    header("Location: index.php?msg=invalid&obj=stok_fisik");
+// Tidak bisa hapus jika data dikoreksi
+if ((int)$koreksi === 1) {
+    header("Location: index.php?msg=locked&obj=stok_fisik");
     exit;
 }
 
@@ -34,8 +35,7 @@ $stmt->bind_param("i", $id);
 if ($stmt->execute()) {
     header("Location: index.php?msg=deleted&obj=stok_fisik");
 } else {
-    // Jika gagal karena FK atau lainnya
-    header("Location: index.php?msg=fk_blocked&obj=stok_fisik");
+    header("Location: index.php?msg=failed&obj=stok_fisik");
 }
 $stmt->close();
 exit;

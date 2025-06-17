@@ -10,9 +10,10 @@ if (!in_array($role, ['admin', 'karyawan', 'manajer'])) {
     exit;
 }
 
-$query = "SELECT bm.*, b.nama_barang, b.satuan, u.nama_lengkap AS user_input
+$query = "SELECT bm.*, b.nama_barang, b.satuan, u.nama_lengkap AS user_input, g.nama_gudang
           FROM barang_masuk bm
           JOIN barang b ON bm.id_barang = b.id
+          JOIN gudang g ON bm.id_gudang = g.id
           LEFT JOIN user u ON bm.id_user = u.id
           ORDER BY bm.tanggal DESC";
 $result = $koneksi->query($query);
@@ -44,6 +45,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                             <tr>
                                 <th>No</th>
                                 <th>Nama Barang</th>
+                                <th>Gudang</th>
                                 <th>Tanggal</th>
                                 <th>Jumlah</th>
                                 <th>Keterangan</th>
@@ -59,6 +61,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                 <tr>
                                     <td><?= $no++ ?></td>
                                     <td><?= htmlspecialchars($row['nama_barang']) ?> (<?= $row['satuan'] ?>)</td>
+                                    <td><?= htmlspecialchars($row['nama_gudang']) ?></td>
                                     <td><?= date('d/m/Y', strtotime($row['tanggal'])) ?></td>
                                     <td><?= $row['jumlah'] ?></td>
                                     <td><?= htmlspecialchars($row['keterangan'] ?? '-') ?></td>
@@ -78,7 +81,6 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                 </tr>
                             <?php endwhile; ?>
                         </tbody>
-
                     </table>
                 </div>
             </div>
@@ -105,6 +107,18 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                         while ($b = $barang->fetch_assoc()):
                         ?>
                             <option value="<?= $b['id'] ?>"><?= htmlspecialchars($b['nama_barang']) ?> (<?= $b['satuan'] ?>)</option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Gudang</label>
+                    <select name="id_gudang" class="form-select" required>
+                        <option value="">-- Pilih Gudang --</option>
+                        <?php
+                        $gudang = $koneksi->query("SELECT id, nama_gudang FROM gudang ORDER BY nama_gudang ASC");
+                        while ($g = $gudang->fetch_assoc()):
+                        ?>
+                            <option value="<?= $g['id'] ?>"><?= htmlspecialchars($g['nama_gudang']) ?></option>
                         <?php endwhile; ?>
                     </select>
                 </div>
@@ -139,4 +153,4 @@ require_once LAYOUTS_PATH . '/sidebar.php';
             row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
         });
     });
-</script>a
+</script>

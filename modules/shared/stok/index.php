@@ -9,7 +9,6 @@ if (!in_array($role, ['admin', 'manajer', 'sales', 'karyawan'])) {
     exit;
 }
 
-// Semua role boleh mengakses modul ini
 $query = "
     SELECT 
     b.id,
