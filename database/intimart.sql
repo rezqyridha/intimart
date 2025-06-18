@@ -57,6 +57,7 @@ INSERT INTO `barang_kadaluarsa` (`id`, `id_barang`, `tanggal_expired`, `jumlah`,
 CREATE TABLE IF NOT EXISTS `barang_keluar` (
   `id` int NOT NULL AUTO_INCREMENT,
   `id_barang` int NOT NULL,
+  `id_gudang` int DEFAULT NULL,
   `id_user` int NOT NULL,
   `tanggal` date NOT NULL,
   `jumlah` int NOT NULL,
@@ -66,37 +67,42 @@ CREATE TABLE IF NOT EXISTS `barang_keluar` (
   PRIMARY KEY (`id`),
   KEY `id_barang` (`id_barang`),
   KEY `id_user` (`id_user`),
+  KEY `fk_barangkeluar_gudang` (`id_gudang`),
   CONSTRAINT `barang_keluar_ibfk_1` FOREIGN KEY (`id_barang`) REFERENCES `barang` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `barang_keluar_ibfk_2` FOREIGN KEY (`id_user`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `barang_keluar_ibfk_2` FOREIGN KEY (`id_user`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_barangkeluar_gudang` FOREIGN KEY (`id_gudang`) REFERENCES `gudang` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table intimart.barang_keluar: ~4 rows (approximately)
-INSERT INTO `barang_keluar` (`id`, `id_barang`, `id_user`, `tanggal`, `jumlah`, `jenis`, `tujuan`, `keterangan`) VALUES
-	(1, 1, 1, '2025-06-10', 5, 'internal', 'Kantor Cabang A', 'Digunakan untuk demo produk'),
-	(2, 2, 2, '2025-06-09', 2, 'rusak', 'Gudang Pusat', 'Botol pecah saat unloading'),
-	(3, 3, 3, '2025-06-08', 1, 'hilang', NULL, 'Hilang saat transit'),
-	(4, 2, 1, '2025-06-07', 10, 'retur_supplier', 'CV Sumber Jaya', 'Barang expired, retur nota #RS102');
+INSERT INTO `barang_keluar` (`id`, `id_barang`, `id_gudang`, `id_user`, `tanggal`, `jumlah`, `jenis`, `tujuan`, `keterangan`) VALUES
+	(1, 1, 1, 1, '2025-06-10', 5, 'internal', 'Kantor Cabang A', 'Digunakan untuk demo produk'),
+	(2, 2, 3, 2, '2025-06-09', 2, 'rusak', '-', 'Botol pecah saat unloading'),
+	(3, 3, 1, 3, '2025-06-08', 1, 'hilang', NULL, 'Hilang saat transit'),
+	(4, 2, 2, 1, '2025-06-07', 10, 'retur_supplier', 'CV Sumber Jaya', 'Barang expired, retur nota #RS102');
 
 -- Dumping structure for table intimart.barang_masuk
 CREATE TABLE IF NOT EXISTS `barang_masuk` (
   `id` int NOT NULL AUTO_INCREMENT,
   `id_user` int NOT NULL,
   `id_barang` int NOT NULL,
+  `id_gudang` int DEFAULT NULL,
   `tanggal` date NOT NULL,
   `jumlah` int NOT NULL,
   `keterangan` text,
   PRIMARY KEY (`id`),
   KEY `id_user` (`id_user`),
   KEY `id_barang` (`id_barang`),
+  KEY `fk_barangmasuk_gudang` (`id_gudang`),
   CONSTRAINT `barang_masuk_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `barang_masuk_ibfk_2` FOREIGN KEY (`id_barang`) REFERENCES `barang` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `barang_masuk_ibfk_2` FOREIGN KEY (`id_barang`) REFERENCES `barang` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_barangmasuk_gudang` FOREIGN KEY (`id_gudang`) REFERENCES `gudang` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table intimart.barang_masuk: ~3 rows (approximately)
-INSERT INTO `barang_masuk` (`id`, `id_user`, `id_barang`, `tanggal`, `jumlah`, `keterangan`) VALUES
-	(1, 1, 1, '2025-06-01', 100, 'Pengadaan Awal'),
-	(2, 1, 2, '2025-06-02', 190, 'Restok Bulanan'),
-	(5, 1, 3, '2025-06-11', 20, 'test masuk');
+INSERT INTO `barang_masuk` (`id`, `id_user`, `id_barang`, `id_gudang`, `tanggal`, `jumlah`, `keterangan`) VALUES
+	(1, 1, 1, 1, '2025-06-01', 100, 'Pengadaan Awal'),
+	(2, 1, 2, 2, '2025-06-02', 190, 'Restok Bulanan'),
+	(5, 1, 3, 1, '2025-06-11', 20, 'test masuk');
 
 -- Dumping structure for table intimart.detail_restok
 CREATE TABLE IF NOT EXISTS `detail_restok` (
@@ -122,12 +128,13 @@ CREATE TABLE IF NOT EXISTS `gudang` (
   `nama_gudang` varchar(100) DEFAULT NULL,
   `alamat` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table intimart.gudang: ~2 rows (approximately)
 INSERT INTO `gudang` (`id`, `nama_gudang`, `alamat`) VALUES
 	(1, 'Gudang Pusat', 'Jl. Intiboga No. 1'),
-	(2, 'Gudang Cabang', 'Jl. Raya Banjarmasin No. 2');
+	(2, 'Gudang Cabang', 'Jl. Raya Banjarmasin No. 2'),
+	(3, 'Gudang Cabang A', 'Jl. Intiboga No.7');
 
 -- Dumping structure for table intimart.kas
 CREATE TABLE IF NOT EXISTS `kas` (
@@ -162,7 +169,7 @@ CREATE TABLE IF NOT EXISTS `laba` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dumping data for table intimart.laba: ~1 rows (approximately)
+-- Dumping data for table intimart.laba: ~0 rows (approximately)
 INSERT INTO `laba` (`id`, `periode`, `total_pendapatan`, `total_pengeluaran`, `laba_bersih`) VALUES
 	(1, '2025-06', 1200000.00, 600000.00, 600000.00);
 
@@ -196,7 +203,7 @@ CREATE TABLE IF NOT EXISTS `pembayaran` (
   CONSTRAINT `pembayaran_ibfk_1` FOREIGN KEY (`id_penjualan`) REFERENCES `penjualan` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dumping data for table intimart.pembayaran: ~2 rows (approximately)
+-- Dumping data for table intimart.pembayaran: ~3 rows (approximately)
 INSERT INTO `pembayaran` (`id`, `id_penjualan`, `metode`, `keterangan`, `tanggal`, `jumlah_bayar`) VALUES
 	(1, 1, 'tunai', NULL, '2025-06-06', 30000),
 	(3, 2, 'transfer', 'test edit dari belum lunas ke lunas', '2025-06-10', 32500);
@@ -277,7 +284,7 @@ CREATE TABLE IF NOT EXISTS `penjualan` (
   CONSTRAINT `penjualan_ibfk_2` FOREIGN KEY (`id_sales`) REFERENCES `user` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dumping data for table intimart.penjualan: ~3 rows (approximately)
+-- Dumping data for table intimart.penjualan: ~2 rows (approximately)
 INSERT INTO `penjualan` (`id`, `id_barang`, `id_sales`, `tanggal`, `jumlah`, `harga_total`, `status_pelunasan`) VALUES
 	(1, 1, 4, '2025-06-05', 10, 30000.00, 'lunas'),
 	(2, 2, 4, '2025-06-06', 5, 32500.00, 'lunas'),
@@ -293,12 +300,13 @@ CREATE TABLE IF NOT EXISTS `piutang` (
   PRIMARY KEY (`id`),
   KEY `id_sales` (`id_sales`),
   CONSTRAINT `piutang_ibfk_1` FOREIGN KEY (`id_sales`) REFERENCES `user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table intimart.piutang: ~2 rows (approximately)
 INSERT INTO `piutang` (`id`, `id_sales`, `tanggal`, `jumlah`, `status`) VALUES
-	(1, 4, '2025-06-07', 100000.00, 'belum lunas'),
-	(2, 4, '2025-06-08', 120000.00, 'lunas');
+	(1, 4, '2025-06-07', 100000.00, 'lunas'),
+	(2, 4, '2025-06-08', 120000.00, 'lunas'),
+	(3, 4, '2025-06-02', 350000.00, 'belum lunas');
 
 -- Dumping structure for table intimart.produk_tidak_laku
 CREATE TABLE IF NOT EXISTS `produk_tidak_laku` (
@@ -350,14 +358,15 @@ CREATE TABLE IF NOT EXISTS `restok_supplier` (
   PRIMARY KEY (`id`),
   KEY `id_supplier` (`id_supplier`),
   CONSTRAINT `restok_supplier_ibfk_1` FOREIGN KEY (`id_supplier`) REFERENCES `supplier` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table intimart.restok_supplier: ~4 rows (approximately)
 INSERT INTO `restok_supplier` (`id`, `id_supplier`, `tgl_pesan`, `status`, `catatan`, `created_at`) VALUES
-	(1, 1, '2025-06-01', 'diproses', 'Pengadaan reguler', '2025-06-09 03:13:07'),
+	(1, 1, '2025-06-01', 'batal', 'Pengadaan reguler', '2025-06-09 03:13:07'),
 	(2, 2, '2025-06-02', 'dikirim', 'Pesanan mendesak', '2025-06-09 03:13:07'),
 	(3, 1, '2025-06-03', 'selesai', 'Sudah diterima', '2025-06-09 03:13:07'),
-	(4, 2, '2025-06-04', 'batal', 'Kesalahan input', '2025-06-09 03:13:07');
+	(4, 2, '2025-06-04', 'batal', 'Kesalahan input', '2025-06-09 03:13:07'),
+	(5, 2, '2025-06-17', 'dikirim', 'test ubah status', '2025-06-17 10:37:03');
 
 -- Dumping structure for table intimart.retur_penjualan
 CREATE TABLE IF NOT EXISTS `retur_penjualan` (
@@ -379,23 +388,27 @@ INSERT INTO `retur_penjualan` (`id`, `id_penjualan`, `jumlah`, `alasan`, `tangga
 CREATE TABLE IF NOT EXISTS `stok_fisik` (
   `id` int NOT NULL AUTO_INCREMENT,
   `id_barang` int NOT NULL,
+  `id_gudang` int DEFAULT NULL,
+  `id_user` int NOT NULL,
   `jumlah_fisik` int NOT NULL,
   `stok_sistem` int DEFAULT NULL,
   `koreksi` tinyint(1) DEFAULT '0',
   `tanggal` date NOT NULL,
-  `lokasi` varchar(100) DEFAULT NULL,
   `keterangan` text,
-  `id_user` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `id_barang` (`id_barang`),
   KEY `id_user` (`id_user`),
+  KEY `fk_stokfisik_gudang` (`id_gudang`),
+  CONSTRAINT `fk_stokfisik_gudang` FOREIGN KEY (`id_gudang`) REFERENCES `gudang` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `stok_fisik_ibfk_1` FOREIGN KEY (`id_barang`) REFERENCES `barang` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `stok_fisik_ibfk_2` FOREIGN KEY (`id_user`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dumping data for table intimart.stok_fisik: ~1 rows (approximately)
-INSERT INTO `stok_fisik` (`id`, `id_barang`, `jumlah_fisik`, `stok_sistem`, `koreksi`, `tanggal`, `lokasi`, `keterangan`, `id_user`) VALUES
-	(1, 2, 170, 173, 1, '2025-06-10', 'Gudang Pusat', 'te koreksi', 1);
+-- Dumping data for table intimart.stok_fisik: ~2 rows (approximately)
+INSERT INTO `stok_fisik` (`id`, `id_barang`, `id_gudang`, `id_user`, `jumlah_fisik`, `stok_sistem`, `koreksi`, `tanggal`, `keterangan`) VALUES
+	(1, 2, 1, 1, 170, 173, 1, '2025-06-10', 'te koreksi'),
+	(2, 1, 1, 1, 90, 90, 1, '2025-06-08', 'test'),
+	(3, 3, 2, 1, 20, 4, 1, '2025-06-17', 'test');
 
 -- Dumping structure for table intimart.supplier
 CREATE TABLE IF NOT EXISTS `supplier` (
@@ -421,11 +434,12 @@ CREATE TABLE IF NOT EXISTS `target_sales` (
   PRIMARY KEY (`id`),
   KEY `id_sales` (`id_sales`),
   CONSTRAINT `target_sales_ibfk_1` FOREIGN KEY (`id_sales`) REFERENCES `user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table intimart.target_sales: ~0 rows (approximately)
 INSERT INTO `target_sales` (`id`, `id_sales`, `bulan`, `target`, `realisasi`) VALUES
-	(1, 4, '2025-06', 1000000, 750000);
+	(1, 4, '2025-07', 1000000, 990000),
+	(2, 4, '2025-06', 2000000, 0);
 
 -- Dumping structure for table intimart.user
 CREATE TABLE IF NOT EXISTS `user` (
@@ -435,14 +449,15 @@ CREATE TABLE IF NOT EXISTS `user` (
   `nama_lengkap` varchar(100) DEFAULT NULL,
   `role` enum('admin','manajer','karyawan','sales') NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table intimart.user: ~4 rows (approximately)
 INSERT INTO `user` (`id`, `username`, `password`, `nama_lengkap`, `role`) VALUES
 	(1, 'admin', 'admin123', 'Administrator', 'admin'),
 	(2, 'manajer1', 'manajer123', 'Manager Pusat', 'manajer'),
 	(3, 'karyawan1', 'karyawan123', 'Karyawan Gudang', 'karyawan'),
-	(4, 'sales1', 'sales123', 'Sales Lapangan', 'sales');
+	(4, 'sales1', 'sales123', 'Sales Lapangan', 'sales'),
+	(5, 'admin2', '$2y$10$UV26jpkXXhes/QJ0FWKjTOpFUTim1zMHfsGg.8nGxa7AUVcYp6BC.', 'Supri Admin Ubah', 'admin');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
