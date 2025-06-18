@@ -97,9 +97,9 @@ function is_uri_match(array $patterns): bool
                 <i class="fe fe-chevron-right side-menu__angle"></i>
             </a>
             <ul class="slide-menu child2">
-                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/penjualan.php" class="side-menu__item <?= str_contains($current_uri, 'penjualan') ? 'active' : '' ?>">Penjualan</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/penjualan.php" class="side-menu__item <?= str_contains($current_uri, '/laporan/penjualan.php') ? 'active' : '' ?>">Penjualan</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/laporan/keuangan.php" class="side-menu__item <?= str_contains($current_uri, 'keuangan') ? 'active' : '' ?>">Keuangan</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/stok.php" class="side-menu__item <?= str_contains($current_uri, 'stok') ? 'active' : '' ?>">Stok</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/stok_barang.php" class="side-menu__item <?= str_contains($current_uri, 'stok') ? 'active' : '' ?>">Stok</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/laporan/produk_terlaris.php" class="side-menu__item <?= str_contains($current_uri, 'produk_terlaris') ? 'active' : '' ?>">Produk Terlaris</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/laporan/kinerja_sales.php" class="side-menu__item <?= str_contains($current_uri, 'kinerja_sales') ? 'active' : '' ?>">Kinerja Sales</a></li>
             </ul>
