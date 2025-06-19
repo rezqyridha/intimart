@@ -25,7 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($username === '' || $password === '') {
         $_SESSION['login_error'] = "Username dan Password wajib diisi.";
     } else {
-        $stmt = $koneksi->prepare("SELECT id, username, password, nama_lengkap, role FROM user WHERE username = ?");
+        // ✅ Tambahkan kolom `foto` pada SELECT
+        $stmt = $koneksi->prepare("SELECT id, username, password, nama_lengkap, role, foto FROM user WHERE username = ?");
         $stmt->bind_param("s", $username);
 
         if ($stmt && $stmt->execute()) {
@@ -34,15 +35,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($result && $result->num_rows === 1) {
                 $user = $result->fetch_assoc();
 
-                // Gunakan password_verify jika sudah hash
                 if (password_verify($password, $user['password'])) {
                     $_SESSION['login']         = true;
-                    $_SESSION['id_user']       = $user['id'];             // ✅ fix utamanya di sini
-                    $_SESSION['user_id']       = $user['id'];             // (opsional, boleh tetap)
+                    $_SESSION['id_user']       = $user['id'];
+                    $_SESSION['user_id']       = $user['id']; // optional alias
                     $_SESSION['username']      = $user['username'];
                     $_SESSION['nama_lengkap']  = $user['nama_lengkap'];
-                    $_SESSION['foto']          = $user['foto'] ?? 'default.png'; // Gunakan default jika foto tidak ada
                     $_SESSION['role']          = $user['role'];
+
+                    // ✅ Pastikan foto tersimpan di session, gunakan default jika kosong
+                    $_SESSION['foto'] = !empty($user['foto']) ? $user['foto'] : 'default.png';
 
                     header("Location: " . BASE_URL . "/modules/" . $user['role'] . "/dashboard.php");
                     exit;
@@ -57,11 +59,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Redirect ke login lagi (agar error tidak muncul setelah refresh)
     header("Location: " . BASE_URL . "/auth/login.php");
     exit;
 }
 ?>
+
 
 
 <!DOCTYPE html>
