@@ -35,12 +35,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $user = $result->fetch_assoc();
 
                 // Gunakan password_verify jika sudah hash
-                if ($password === $user['password']) {
+                if (password_verify($password, $user['password'])) {
                     $_SESSION['login']         = true;
                     $_SESSION['id_user']       = $user['id'];             // ✅ fix utamanya di sini
                     $_SESSION['user_id']       = $user['id'];             // (opsional, boleh tetap)
                     $_SESSION['username']      = $user['username'];
                     $_SESSION['nama_lengkap']  = $user['nama_lengkap'];
+                    $_SESSION['foto']          = $user['foto'] ?? 'default.png'; // Gunakan default jika foto tidak ada
                     $_SESSION['role']          = $user['role'];
 
                     header("Location: " . BASE_URL . "/modules/" . $user['role'] . "/dashboard.php");

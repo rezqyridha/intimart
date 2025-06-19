@@ -5,7 +5,7 @@ require_once AUTH_PATH . '/session.php';
 
 // Role yang diizinkan
 $role = $_SESSION['role'] ?? '';
-if (!in_array($role, ['admin', 'manajer', 'sales'])) {
+if (!in_array($role, ['admin', 'karyawan'])) {
     header("Location: " . BASE_URL . "/unauthorized.php");
     exit;
 }
@@ -31,7 +31,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
         <div class="card custom-card mt-5">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">Manajemen Data Barang Kadaluarsa</h5>
-                <?php if ($role !== 'manajer'): ?>
+                <?php if (in_array($role, ['admin', 'karyawan'])): ?>
                     <a href="add.php" class="btn btn-sm btn-primary">
                         <i class="fe fe-plus"></i> Tambah
                     </a>

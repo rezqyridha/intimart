@@ -3,64 +3,80 @@ require_once '../../../config/constants.php';
 require_once CONFIG_PATH . '/koneksi.php';
 require_once AUTH_PATH . '/session.php';
 
-if (!in_array($_SESSION['role'], ['admin', 'karyawan'])) {
+$role = $_SESSION['role'] ?? '';
+$id_user = $_SESSION['id_user'] ?? 0;
+
+// Hanya admin, karyawan, atau sales yang boleh mengakses
+if (!in_array($role, ['admin', 'karyawan', 'sales'])) {
     header("Location: index.php?msg=unauthorized&obj=retur");
     exit;
 }
 
-$id_penjualan = trim($_POST['id_penjualan'] ?? '');
-$jumlah       = trim($_POST['jumlah'] ?? '');
+// Ambil input
+$id_penjualan = intval($_POST['id_penjualan'] ?? 0);
+$jumlah       = intval($_POST['jumlah'] ?? 0);
 $alasan       = trim($_POST['alasan'] ?? '');
 $tanggal      = trim($_POST['tanggal'] ?? '');
 
-if ($id_penjualan === '' || $jumlah === '' || $alasan === '' || $tanggal === '') {
+// Validasi kosong
+if (!$id_penjualan || !$jumlah || $alasan === '' || $tanggal === '') {
     header("Location: index.php?msg=kosong&obj=retur");
     exit;
 }
 
-if (!is_numeric($jumlah) || $jumlah <= 0) {
+// Validasi logis
+if ($jumlah <= 0) {
     header("Location: index.php?msg=invalid&obj=retur");
     exit;
 }
 
-// Validasi apakah transaksi penjualan ada
-$stmt = $koneksi->prepare("SELECT jumlah FROM penjualan WHERE id = ?");
+// Ambil data penjualan
+$stmt = $koneksi->prepare("SELECT jumlah, id_sales FROM penjualan WHERE id = ?");
 $stmt->bind_param("i", $id_penjualan);
 $stmt->execute();
-$res = $stmt->get_result();
-$penjualan = $res->fetch_assoc();
+$result = $stmt->get_result();
+$penjualan = $result->fetch_assoc();
 
+// Jika penjualan tidak ditemukan
 if (!$penjualan) {
-    header("Location: index.php?msg=invalid&obj=retur");
+    header("Location: index.php?msg=notfound&obj=retur");
     exit;
 }
 
-// Cek apakah sudah pernah retur untuk penjualan ini
-$cekDuplikat = $koneksi->prepare("SELECT COUNT(*) AS total FROM retur_penjualan WHERE id_penjualan = ?");
-$cekDuplikat->bind_param("i", $id_penjualan);
-$cekDuplikat->execute();
-$duplikat = $cekDuplikat->get_result()->fetch_assoc();
-
-if ($duplikat['total'] > 0) {
-    header("Location: index.php?msg=duplicate&obj=retur");
+// Jika sales, pastikan hanya retur penjualan miliknya
+if ($role === 'sales' && $penjualan['id_sales'] != $id_user) {
+    header("Location: index.php?msg=unauthorized&obj=retur");
     exit;
 }
 
-// Validasi jumlah retur tidak melebihi jumlah penjualan
+// Validasi retur tidak lebih dari jumlah jual
 if ($jumlah > $penjualan['jumlah']) {
     $maks = $penjualan['jumlah'];
     header("Location: index.php?msg=melebihi&obj=retur&maks=$maks");
     exit;
 }
 
+// Cek apakah sudah retur untuk penjualan ini
+$cek = $koneksi->prepare("SELECT COUNT(*) AS total FROM retur_penjualan WHERE id_penjualan = ?");
+$cek->bind_param("i", $id_penjualan);
+$cek->execute();
+$cek_result = $cek->get_result()->fetch_assoc();
 
-// Simpan retur
-$insert = $koneksi->prepare("INSERT INTO retur_penjualan (id_penjualan, jumlah, alasan, tanggal) VALUES (?, ?, ?, ?)");
+if ($cek_result['total'] > 0) {
+    header("Location: index.php?msg=duplicate&obj=retur");
+    exit;
+}
+
+// Simpan data
+$insert = $koneksi->prepare("
+    INSERT INTO retur_penjualan (id_penjualan, jumlah, alasan, tanggal)
+    VALUES (?, ?, ?, ?)
+");
 $insert->bind_param("iiss", $id_penjualan, $jumlah, $alasan, $tanggal);
 
 if ($insert->execute()) {
     header("Location: index.php?msg=added&obj=retur");
 } else {
-    header("Location: index.php?msg=error&obj=retur");
+    header("Location: index.php?msg=failed&obj=retur");
 }
 exit;

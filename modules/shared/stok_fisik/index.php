@@ -3,9 +3,9 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/config/constants.php';
 require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
-$role = $_SESSION['role'];
-if (!in_array($role, ['admin', 'karyawan'])) {
-    header("Location: " . BASE_URL . "/notfound.php");
+$role = $_SESSION['role'] ?? '';
+if (!in_array($role, ['admin', 'manajer', 'karyawan'])) {
+    header("Location: " . BASE_URL . "/unauthorized.php");
     exit;
 }
 
@@ -32,9 +32,11 @@ require_once LAYOUTS_PATH . '/sidebar.php';
         <div class="card custom-card shadow-sm mt-5">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="card-title mb-0">Manajemen Data Stok Fisik</div>
-                <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm btn-primary" title="Tambah Stok Fisik">
-                    <i class="fe fe-plus"></i> Tambah
-                </a>
+                <?php if (in_array($role, ['admin', 'karyawan'])): ?>
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm btn-primary" title="Tambah Stok Fisik">
+                        <i class="fe fe-plus"></i> Tambah
+                    </a>
+                <?php endif; ?>
             </div>
 
             <div class="card-body">
@@ -55,7 +57,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                 <th>Tanggal</th>
                                 <th>Oleh</th>
                                 <th>Koreksi?</th>
-                                <?php if ($role === 'admin'): ?>
+                                <?php if (in_array($role, ['admin', 'karyawan'])): ?>
                                     <th class="text-center">Aksi</th>
                                 <?php endif; ?>
                             </tr>
@@ -84,7 +86,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                     <td class="text-center">
                                         <?= $row['koreksi'] ? '<i class="fe fe-check text-success"></i>' : '-' ?>
                                     </td>
-                                    <?php if ($role === 'admin'): ?>
+                                    <?php if (in_array($role, ['admin', 'karyawan'])): ?>
                                         <td class="text-center">
                                             <?php if ($row['koreksi']): ?>
                                                 <span class="badge bg-light text-dark border">

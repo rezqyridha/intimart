@@ -3,6 +3,11 @@ require_once '../../../config/constants.php';
 require_once CONFIG_PATH . '/koneksi.php';
 require_once AUTH_PATH . '/session.php';
 
+if (!in_array($_SESSION['role'], ['admin', 'karyawan'])) {
+    header("Location: index.php?msg=unauthorized&obj=barang_masuk");
+    exit;
+}
+
 $id_barang  = (int)($_POST['id_barang'] ?? 0);
 $id_gudang  = (int)($_POST['id_gudang'] ?? 0);
 $jumlah     = trim($_POST['jumlah'] ?? '');

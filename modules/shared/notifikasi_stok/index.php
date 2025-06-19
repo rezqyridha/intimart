@@ -5,7 +5,7 @@ require_once AUTH_PATH . '/session.php';
 
 // Role yang diizinkan
 $role = $_SESSION['role'];
-if (!in_array($role, ['admin', 'manajer', 'sales', 'karyawan'])) {
+if (!in_array($role, ['admin', 'karyawan'])) {
     header("Location: " . BASE_URL . "/unauthorized.php");
     exit;
 }

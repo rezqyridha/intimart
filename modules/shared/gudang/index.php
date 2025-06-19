@@ -4,8 +4,8 @@ require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
 $role = $_SESSION['role'];
-if (!in_array($role, ['admin', 'karyawan'])) {
-    header("Location: ../unauthorized.php");
+if (!in_array($role, ['admin', 'karyawan', 'manajer'])) {
+    header("Location: " . BASE_URL . "/unauthorized.php");
     exit;
 }
 
@@ -23,7 +23,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
         <div class="card custom-card shadow-sm mt-5">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="card-title mb-0">Manajemen Gudang</div>
-                <?php if ($role === 'admin') : ?>
+                <?php if (in_array($role, ['admin', 'karyawan'])) : ?>
                     <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">
                         <i class="fe fe-plus"></i> Tambah
                     </a>

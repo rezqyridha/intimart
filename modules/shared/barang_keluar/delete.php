@@ -3,8 +3,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/config/constants.php';
 require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
-// Hanya admin yang diizinkan menghapus
-if ($_SESSION['role'] !== 'admin') {
+// Hanya admin dan karyawan yang diizinkan menghapus
+if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'karyawan') {
     header("Location: index.php?msg=unauthorized&obj=barang_keluar");
     exit;
 }

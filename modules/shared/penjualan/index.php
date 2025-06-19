@@ -4,18 +4,27 @@ require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
 $role = $_SESSION['role'];
-if (!in_array($role, ['admin', 'sales', 'manajer', 'karyawan'])) {
+$id_user = $_SESSION['id_user'];
+
+if (!in_array($role, ['admin', 'sales', 'manajer'])) {
     header("Location: " . BASE_URL . "/unauthorized.php");
     exit;
 }
 
+// Query penjualan
 $query = "
     SELECT p.*, b.nama_barang, b.satuan, u.nama_lengkap AS nama_sales
     FROM penjualan p
     JOIN barang b ON p.id_barang = b.id
     JOIN user u ON p.id_sales = u.id
-    ORDER BY p.tanggal DESC
 ";
+
+// Jika sales, filter hanya miliknya
+if ($role === 'sales') {
+    $query .= " WHERE p.id_sales = $id_user";
+}
+
+$query .= " ORDER BY p.tanggal DESC";
 $result = $koneksi->query($query);
 
 require_once LAYOUTS_PATH . '/head.php';
@@ -29,7 +38,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
         <div class="card custom-card shadow-sm mt-5">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="card-title mb-0">Manajemen Data Penjualan</div>
-                <?php if ($role === 'admin') : ?>
+                <?php if ($role === 'admin' || $role === 'sales') : ?>
                     <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">
                         <i class="fe fe-plus"></i> Tambah
                     </a>
@@ -50,7 +59,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                 <th>Jumlah</th>
                                 <th>Total</th>
                                 <th>Status</th>
-                                <?php if ($role === 'admin' || $role === 'manajer') : ?>
+                                <?php if ($role === 'admin') : ?>
                                     <th>Sales</th>
                                 <?php endif; ?>
                                 <?php if ($role === 'admin') : ?>
@@ -72,7 +81,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                             <?= ucfirst($row['status_pelunasan']) ?>
                                         </span>
                                     </td>
-                                    <?php if ($role === 'admin' || $role === 'manajer') : ?>
+                                    <?php if ($role === 'admin') : ?>
                                         <td><?= htmlspecialchars($row['nama_sales']) ?></td>
                                     <?php endif; ?>
                                     <?php if ($role === 'admin') : ?>
@@ -123,16 +132,27 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                     </div>
                     <div class="mb-3">
                         <label for="id_sales" class="form-label">Sales</label>
-                        <select name="id_sales" id="id_sales" class="form-select" required>
-                            <option value="" hidden>-- Pilih Sales --</option>
+
+                        <?php if ($_SESSION['role'] === 'sales'): ?>
                             <?php
-                            $sales = $koneksi->query("SELECT id, nama_lengkap FROM user WHERE role = 'sales' ORDER BY nama_lengkap ASC");
-                            while ($s = $sales->fetch_assoc()) {
-                                echo "<option value='{$s['id']}'>{$s['nama_lengkap']}</option>";
-                            }
+                            $id_sales = $_SESSION['id_user'];
+                            $nama_sales = htmlspecialchars($_SESSION['nama_lengkap']);
                             ?>
-                        </select>
+                            <input type="hidden" name="id_sales" value="<?= $id_sales ?>">
+                            <input type="text" class="form-control" value="<?= $nama_sales ?>" readonly>
+                        <?php else: ?>
+                            <select name="id_sales" id="id_sales" class="form-select" required>
+                                <option value="" hidden>-- Pilih Sales --</option>
+                                <?php
+                                $sales = $koneksi->query("SELECT id, nama_lengkap FROM user WHERE role = 'sales' ORDER BY nama_lengkap ASC");
+                                while ($s = $sales->fetch_assoc()) {
+                                    echo "<option value='{$s['id']}'>{$s['nama_lengkap']}</option>";
+                                }
+                                ?>
+                            </select>
+                        <?php endif; ?>
                     </div>
+
                     <div class="mb-3">
                         <label for="tanggal" class="form-label">Tanggal</label>
                         <input type="date" name="tanggal" id="tanggal" class="form-control" required value="<?= date('Y-m-d') ?>">

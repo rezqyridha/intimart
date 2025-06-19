@@ -4,7 +4,6 @@ require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
 $role = $_SESSION['role'];
-$username = $_SESSION['username'] ?? 'User';
 
 $query = "
     SELECT p.*, 

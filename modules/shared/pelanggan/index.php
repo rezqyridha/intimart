@@ -4,7 +4,12 @@ require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
 $role = $_SESSION['role'];
-$username = $_SESSION['username'] ?? 'User';
+
+// Validate admin access
+if ($role !== 'admin') {
+    header("Location: " . BASE_URL . "/unauthorized.php");
+    exit;
+}
 
 $query = "SELECT * FROM pelanggan ORDER BY nama_pelanggan ASC";
 $result = mysqli_query($koneksi, $query);
@@ -21,7 +26,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
         <div class="card custom-card shadow-sm mt-5">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="card-title mb-0"> Manajemen Data Pelanggan</div>
-                <?php if (in_array($role, ['admin', 'sales'])): ?>
+                <?php if ($role === 'admin'): ?>
                     <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm  btn-primary" title="Tambah Pelanggan">
                         <i class="fe fe-plus"></i> Tambah
                     </a>

@@ -7,7 +7,7 @@ function is_uri_match(array $patterns): bool
 {
     global $current_uri;
     foreach ($patterns as $pattern) {
-        if (str_contains($current_uri, $pattern)) return true;
+        if (strpos($current_uri, $pattern) !== false) return true;
     }
     return false;
 }
@@ -15,6 +15,7 @@ function is_uri_match(array $patterns): bool
 
 <nav class="main-menu-container nav nav-pills flex-column sub-open">
     <ul class="main-menu">
+
         <!-- DASHBOARD -->
         <li class="slide__category"><span class="category-name">Dashboard</span></li>
         <li class="slide <?= $current_page === 'dashboard.php' ? 'active' : '' ?>">
@@ -48,9 +49,30 @@ function is_uri_match(array $patterns): bool
             </a>
         </li>
 
-        <!-- GUDANG & BARANG -->
+        <!-- MODUL KHUSUS ADMIN -->
+        <li class="slide__category"><span class="category-name">Modul Khusus Admin</span></li>
+        <?php
+        $admin_uri = ['/admin/keuangan/', '/admin/laba/', '/admin/piutang/', '/admin/target_sales/'];
+        ?>
+        <li class="slide has-sub <?= is_uri_match($admin_uri) ? 'open active' : '' ?>">
+            <a href="#" class="side-menu__item">
+                <i class="ti-settings side-menu__icon"></i>
+                <span class="side-menu__label">Modul Admin</span>
+                <i class="fe fe-chevron-right side-menu__angle"></i>
+            </a>
+            <ul class="slide-menu child2">
+                <li><a href="<?= BASE_URL ?>/modules/admin/keuangan/index.php" class="side-menu__item <?= str_contains($current_uri, '/admin/keuangan/') ? 'active' : '' ?>">Keuangan</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/admin/laba/index.php" class="side-menu__item <?= str_contains($current_uri, '/admin/laba/') ? 'active' : '' ?>">Laba</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/admin/piutang/index.php" class="side-menu__item <?= str_contains($current_uri, '/admin/piutang/') ? 'active' : '' ?>">Piutang</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/admin/target_sales/index.php" class="side-menu__item <?= str_contains($current_uri, '/admin/target_sales/') ? 'active' : '' ?>">Target Sales</a></li>
+            </ul>
+        </li>
+
+        <!-- STOK & PRODUK -->
         <li class="slide__category"><span class="category-name">Stok & Produk</span></li>
-        <?php $stok_uri = ['/barang', '/barang_masuk', '/barang_keluar', '/stok', '/stok_fisik', '/produk_tidak_laku']; ?>
+        <?php
+        $stok_uri = ['/barang/', '/barang_masuk/', '/barang_keluar/', '/stok/', '/stok_fisik/', '/produk_tidak_laku/', '/kadaluarsa/', '/gudang/'];
+        ?>
         <li class="slide has-sub <?= is_uri_match($stok_uri) ? 'open active' : '' ?>">
             <a href="#" class="side-menu__item">
                 <i class="ti-package side-menu__icon"></i>
@@ -64,13 +86,16 @@ function is_uri_match(array $patterns): bool
                 <li><a href="<?= BASE_URL ?>/modules/shared/stok/index.php" class="side-menu__item <?= str_contains($current_uri, '/stok/') ? 'active' : '' ?>">Stok Sistem</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/stok_fisik/index.php" class="side-menu__item <?= str_contains($current_uri, '/stok_fisik/') ? 'active' : '' ?>">Stok Fisik</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/produk_tidak_laku/index.php" class="side-menu__item <?= str_contains($current_uri, '/produk_tidak_laku/') ? 'active' : '' ?>">Produk Tidak Laku</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/kadaluarsa/index.php" class="side-menu__item <?= str_contains($current_uri, '/kadaluarsa/') ? 'active' : '' ?>">Kadaluarsa</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/gudang/index.php" class="side-menu__item <?= str_contains($current_uri, '/gudang/') ? 'active' : '' ?>">Gudang</a></li>
             </ul>
         </li>
 
-
         <!-- TRANSAKSI -->
         <li class="slide__category"><span class="category-name">Transaksi</span></li>
-        <?php $trx_uri = ['/penjualan', '/retur_penjualan', '/pembayaran', '/rekonsiliasi_pembayaran', '/pengiriman']; ?>
+        <?php
+        $trx_uri = ['/penjualan/', '/retur_penjualan/', '/pembayaran/', '/rekonsiliasi_pembayaran/', '/pengiriman/', '/pemesanan/', '/restock_supplier/'];
+        ?>
         <li class="slide has-sub <?= is_uri_match($trx_uri) ? 'open active' : '' ?>">
             <a href="#" class="side-menu__item">
                 <i class="ti-credit-card side-menu__icon"></i>
@@ -83,13 +108,16 @@ function is_uri_match(array $patterns): bool
                 <li><a href="<?= BASE_URL ?>/modules/shared/pembayaran/index.php" class="side-menu__item <?= str_contains($current_uri, '/pembayaran/') ? 'active' : '' ?>">Pembayaran</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/rekonsiliasi_pembayaran/index.php" class="side-menu__item <?= str_contains($current_uri, '/rekonsiliasi_pembayaran/') ? 'active' : '' ?>">Rekonsiliasi</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/pengiriman/index.php" class="side-menu__item <?= str_contains($current_uri, '/pengiriman/') ? 'active' : '' ?>">Pengiriman</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/pemesanan/index.php" class="side-menu__item <?= str_contains($current_uri, '/pemesanan/') ? 'active' : '' ?>">Pemesanan</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/restock_supplier/index.php" class="side-menu__item <?= str_contains($current_uri, '/restock_supplier/') ? 'active' : '' ?>">Restok Supplier</a></li>
             </ul>
         </li>
 
-
         <!-- LAPORAN -->
         <li class="slide__category"><span class="category-name">Laporan</span></li>
-        <?php $laporan_uri = ['/laporan']; ?>
+        <?php
+        $laporan_uri = ['/laporan/penjualan', '/laporan/keuangan', '/laporan/stok_barang', '/laporan/piutang', '/laporan/pemesanan', '/laporan/retur_penjualan', '/laporan/produk_tidak_laku', '/laporan/target_sales', '/laporan/pengiriman', '/laporan/rekonsiliasi_pembayaran'];
+        ?>
         <li class="slide has-sub <?= is_uri_match($laporan_uri) ? 'open active' : '' ?>">
             <a href="#" class="side-menu__item">
                 <i class="ti-bar-chart side-menu__icon"></i>
@@ -97,11 +125,16 @@ function is_uri_match(array $patterns): bool
                 <i class="fe fe-chevron-right side-menu__angle"></i>
             </a>
             <ul class="slide-menu child2">
-                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/penjualan.php" class="side-menu__item <?= str_contains($current_uri, '/laporan/penjualan.php') ? 'active' : '' ?>">Penjualan</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/keuangan.php" class="side-menu__item <?= str_contains($current_uri, 'keuangan') ? 'active' : '' ?>">Keuangan</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/stok_barang.php" class="side-menu__item <?= str_contains($current_uri, 'stok') ? 'active' : '' ?>">Stok</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/produk_terlaris.php" class="side-menu__item <?= str_contains($current_uri, 'produk_terlaris') ? 'active' : '' ?>">Produk Terlaris</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/kinerja_sales.php" class="side-menu__item <?= str_contains($current_uri, 'kinerja_sales') ? 'active' : '' ?>">Kinerja Sales</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/penjualan.php" class="side-menu__item <?= str_contains($current_uri, 'laporan/penjualan') ? 'active' : '' ?>">Penjualan</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/admin/laporan/kas.php" class="side-menu__item <?= str_contains($current_uri, 'laporan/keuangan') ? 'active' : '' ?>">Keuangan</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/admin/laporan/rekonsiliasi_pembayaran.php" class="side-menu__item <?= str_contains($current_uri, 'laporan/rekonsiliasi_pembayaran') ? 'active' : '' ?>">Rekonsiliasi</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/piutang.php" class="side-menu__item <?= str_contains($current_uri, 'laporan/piutang') ? 'active' : '' ?>">Piutang</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/stok_barang.php" class="side-menu__item <?= str_contains($current_uri, 'laporan/stok_barang') ? 'active' : '' ?>">Stok Barang</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/produk_tidak_laku.php" class="side-menu__item <?= str_contains($current_uri, 'laporan/produk_tidak_laku') ? 'active' : '' ?>">Produk Tidak Laku</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/pemesanan.php" class="side-menu__item <?= str_contains($current_uri, 'laporan/pemesanan') ? 'active' : '' ?>">Pemesanan</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/retur_penjualan.php" class="side-menu__item <?= str_contains($current_uri, 'laporan/retur_penjualan') ? 'active' : '' ?>">Retur Penjualan</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/target_sales.php" class="side-menu__item <?= str_contains($current_uri, 'laporan/target_sales') ? 'active' : '' ?>">Target Sales</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/pengiriman.php" class="side-menu__item <?= str_contains($current_uri, 'laporan/pengiriman') ? 'active' : '' ?>">Pengiriman</a></li>
             </ul>
         </li>
 

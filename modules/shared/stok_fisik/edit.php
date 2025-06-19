@@ -3,7 +3,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/config/constants.php';
 require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
-if ($_SESSION['role'] !== 'admin') {
+if (!in_array($_SESSION['role'], ['admin', 'karyawan'])) {
     header("Location: index.php?msg=unauthorized&obj=stok_fisik");
     exit;
 }

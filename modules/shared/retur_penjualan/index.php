@@ -4,20 +4,26 @@ require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
 $role = $_SESSION['role'] ?? null;
-$username = $_SESSION['username'] ?? 'User';
+$id_user = $_SESSION['id_user'] ?? 0;
 
 if (!in_array($role, ['admin', 'karyawan', 'sales', 'manajer'])) {
     header("Location: " . BASE_URL . "/unauthorized.php");
     exit;
 }
 
+// Query data retur
 $query = "
     SELECT rp.*, b.nama_barang, b.satuan, p.tanggal AS tgl_penjualan, p.jumlah AS jumlah_terjual
     FROM retur_penjualan rp
     JOIN penjualan p ON rp.id_penjualan = p.id
     JOIN barang b ON p.id_barang = b.id
-    ORDER BY rp.tanggal DESC
 ";
+
+if ($role === 'sales') {
+    $query .= " WHERE p.id_sales = $id_user";
+}
+
+$query .= " ORDER BY rp.tanggal DESC";
 $result = $koneksi->query($query);
 
 require_once LAYOUTS_PATH . '/head.php';
@@ -31,7 +37,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
         <div class="card custom-card shadow-sm mt-5">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="card-title mb-0">Manajemen Data Retur Penjualan</div>
-                <?php if (in_array($role, ['admin', 'karyawan'])): ?>
+                <?php if (in_array($role, ['admin', 'karyawan', 'sales'])): ?>
                     <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm btn-primary">
                         <i class="fe fe-plus"></i> Tambah
                     </a>
@@ -90,57 +96,61 @@ require_once LAYOUTS_PATH . '/sidebar.php';
 </div>
 
 <!-- Modal Tambah Retur -->
-<div class="modal fade" id="modalTambah" tabindex="-1">
-    <div class="modal-dialog">
-        <form method="post" action="add.php" class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Tambah Retur Penjualan</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
+<?php if (in_array($role, ['admin', 'karyawan', 'sales'])): ?>
+    <div class="modal fade" id="modalTambah" tabindex="-1">
+        <div class="modal-dialog">
+            <form method="post" action="add.php" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Retur Penjualan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
 
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label">Transaksi Penjualan</label>
-                    <select name="id_penjualan" class="form-select" required>
-                        <option value="">-- Pilih Transaksi --</option>
-                        <?php
-                        $penjualan = $koneksi->query("
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Transaksi Penjualan</label>
+                        <select name="id_penjualan" class="form-select" required>
+                            <option value="">-- Pilih Transaksi --</option>
+                            <?php
+                            $filter = $role === 'sales' ? "WHERE p.id_sales = $id_user" : "";
+                            $penjualan = $koneksi->query("
                             SELECT p.id, b.nama_barang, b.satuan, p.tanggal, p.jumlah
                             FROM penjualan p
                             JOIN barang b ON p.id_barang = b.id
+                            $filter
                             ORDER BY p.tanggal DESC
                         ");
-                        while ($row = $penjualan->fetch_assoc()):
-                        ?>
-                            <option value="<?= $row['id'] ?>">
-                                <?= htmlspecialchars($row['nama_barang']) ?> (<?= $row['satuan'] ?>) - <?= date('d-m-Y', strtotime($row['tanggal'])) ?> - Terjual: <?= $row['jumlah'] ?>
-                            </option>
-                        <?php endwhile; ?>
-                    </select>
+                            while ($row = $penjualan->fetch_assoc()):
+                            ?>
+                                <option value="<?= $row['id'] ?>">
+                                    <?= htmlspecialchars($row['nama_barang']) ?> (<?= $row['satuan'] ?>) - <?= date('d-m-Y', strtotime($row['tanggal'])) ?> - Terjual: <?= $row['jumlah'] ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Jumlah Retur</label>
+                        <input type="number" name="jumlah" class="form-control" min="1" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Alasan Retur</label>
+                        <textarea name="alasan" class="form-control" rows="2" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal Retur</label>
+                        <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Jumlah Retur</label>
-                    <input type="number" name="jumlah" class="form-control" min="1" required>
+                <div class="modal-footer">
+                    <button class="btn btn-primary"><i class="fe fe-plus me-1"></i> Simpan</button>
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Alasan Retur</label>
-                    <textarea name="alasan" class="form-control" rows="2" required></textarea>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Tanggal Retur</label>
-                    <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button class="btn btn-primary"><i class="fe fe-plus me-1"></i> Simpan</button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
+<?php endif; ?>
 
 <?php require_once LAYOUTS_PATH . '/footer.php'; ?>
 <?php require_once LAYOUTS_PATH . '/scripts.php'; ?>

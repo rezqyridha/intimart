@@ -1,0 +1,156 @@
+/* ========== REGISTER PAGE CUSTOM CSS ========== */
+
+body {
+    background: #e2ecf4;
+    font-family: "Segoe UI", sans-serif;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+/* Container utama */
+.register-wrapper {
+    display: flex;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    max-width: 960px;
+    width: 100%;
+    animation: fadeIn 0.6s ease-in-out;
+    transition: all 0.3s ease-in-out;
+    opacity: 0;
+}
+
+/* Fade saat page siap */
+body.loaded .register-wrapper {
+    opacity: 1;
+}
+
+/* Kiri: Branding */
+.register-left {
+    background: #2563eb;
+    color: #fff;
+    padding: 2.5rem;
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.register-left img {
+    width: 100px;
+    margin-bottom: 1.5rem;
+}
+
+.register-left h4 {
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-top: 1rem;
+}
+
+.register-left p {
+    font-size: 15px;
+    line-height: 1.6;
+    text-align: center;
+    margin-top: 1rem;
+}
+
+/* Kanan: Form */
+.register-right {
+    width: 50%;
+    padding: 2.5rem;
+    position: relative;
+}
+
+.register-right h5 {
+    font-weight: 600;
+}
+
+.register-right .form-label {
+    font-weight: 600;
+    color: #374151;
+}
+
+.register-right .form-control {
+    border-radius: 6px;
+}
+
+.register-right .btn-primary {
+    background-color: #6b47dc;
+    border-color: #6b47dc;
+    font-weight: 600;
+    border-radius: 6px;
+}
+
+.register-right .btn-primary:hover {
+    background-color: #5631c4;
+}
+
+.register-right .input-group-text {
+    background-color: #e5e7eb;
+    border: none;
+}
+
+.register-right .toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 36px;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.alert-danger {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+    .register-wrapper {
+        flex-direction: column;
+        max-width: 90%;
+    }
+
+    .register-left,
+    .register-right {
+        width: 100%;
+    }
+
+    .register-left h4 {
+        font-size: 1.3rem;
+    }
+
+    .register-left p {
+        font-size: 14px;
+    }
+
+    .register-right {
+        padding: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .register-wrapper {
+        padding: 1rem;
+        border-radius: 0;
+        box-shadow: none;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -7,7 +7,7 @@ function is_uri_match(array $patterns): bool
 {
     global $current_uri;
     foreach ($patterns as $pattern) {
-        if (str_contains($current_uri, $pattern)) return true;
+        if (strpos($current_uri, $pattern) !== false) return true;
     }
     return false;
 }
@@ -19,7 +19,7 @@ function is_uri_match(array $patterns): bool
 
         <!-- DASHBOARD -->
         <li class="slide__category"><span class="category-name">Dashboard</span></li>
-        <li class="slide <?= str_contains($current_uri, '/karyawan/dashboard.php') ? 'active' : '' ?>">
+        <li class="slide <?= strpos($current_uri, '/karyawan/dashboard.php') !== false ? 'active' : '' ?>">
             <a href="<?= BASE_URL ?>/modules/karyawan/dashboard.php" class="side-menu__item">
                 <i class="ti-home side-menu__icon"></i>
                 <span class="side-menu__label">Dashboard</span>
@@ -28,7 +28,16 @@ function is_uri_match(array $patterns): bool
 
         <!-- GUDANG -->
         <li class="slide__category"><span class="category-name">Gudang & Stok</span></li>
-        <?php $stok_uri = ['/barang', '/barang_masuk', '/barang_keluar', '/stok', '/stok_fisik', '/produk_tidak_laku']; ?>
+        <?php $stok_uri = [
+            '/modules/shared/barang/',
+            '/modules/shared/barang_masuk/',
+            '/modules/shared/barang_keluar/',
+            '/modules/shared/stok_fisik/',
+            '/modules/shared/stok/',
+            '/modules/shared/produk_tidak_laku/',
+            '/modules/shared/kadaluarsa/',
+            '/modules/shared/gudang/'
+        ]; ?>
         <li class="slide has-sub <?= is_uri_match($stok_uri) ? 'open active' : '' ?>">
             <a href="#" class="side-menu__item">
                 <i class="ti-package side-menu__icon"></i>
@@ -36,73 +45,55 @@ function is_uri_match(array $patterns): bool
                 <i class="fe fe-chevron-right side-menu__angle"></i>
             </a>
             <ul class="slide-menu child2">
-                <li><a href="<?= BASE_URL ?>/modules/shared/barang/index.php" class="side-menu__item <?= str_contains($current_uri, '/barang/') ? 'active' : '' ?>">Data Barang</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/shared/barang_masuk/index.php" class="side-menu__item <?= str_contains($current_uri, '/barang_masuk/') ? 'active' : '' ?>">Barang Masuk</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/shared/barang_keluar/index.php" class="side-menu__item <?= str_contains($current_uri, '/barang_keluar/') ? 'active' : '' ?>">Barang Keluar</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/shared/stok_fisik/index.php" class="side-menu__item <?= str_contains($current_uri, '/stok_fisik/') ? 'active' : '' ?>">Update Stok Fisik</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/shared/stok/index.php" class="side-menu__item <?= str_contains($current_uri, '/stok/') ? 'active' : '' ?>">Stok Sistem</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/shared/produk_tidak_laku/index.php" class="side-menu__item <?= str_contains($current_uri, '/produk_tidak_laku/') ? 'active' : '' ?>">Produk Tidak Laku</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/barang/index.php" class="side-menu__item <?= strpos($current_uri, '/modules/shared/barang/') !== false ? 'active' : '' ?>">Barang</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/barang_masuk/index.php" class="side-menu__item <?= strpos($current_uri, '/modules/shared/barang_masuk/') !== false ? 'active' : '' ?>">Barang Masuk</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/barang_keluar/index.php" class="side-menu__item <?= strpos($current_uri, '/modules/shared/barang_keluar/') !== false ? 'active' : '' ?>">Barang Keluar</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/stok_fisik/index.php" class="side-menu__item <?= strpos($current_uri, '/modules/shared/stok_fisik/') !== false ? 'active' : '' ?>">Stok Fisik</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/stok/index.php" class="side-menu__item <?= strpos($current_uri, '/modules/shared/stok/') !== false ? 'active' : '' ?>">Stok Sistem</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/produk_tidak_laku/index.php" class="side-menu__item <?= strpos($current_uri, '/modules/shared/produk_tidak_laku/') !== false ? 'active' : '' ?>">Produk Tidak Laku</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/kadaluarsa/index.php" class="side-menu__item <?= strpos($current_uri, '/modules/shared/kadaluarsa/') !== false ? 'active' : '' ?>">Kadaluarsa</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/gudang/index.php" class="side-menu__item <?= strpos($current_uri, '/modules/shared/gudang/') !== false ? 'active' : '' ?>">Gudang</a></li>
             </ul>
         </li>
 
-        <!-- TRANSAKSI -->
-        <li class="slide__category"><span class="category-name">Transaksi</span></li>
-        <?php $trx_uri = ['/penjualan/', '/retur_penjualan/']; ?>
-        <li class="slide has-sub <?= is_uri_match($trx_uri) ? 'open active' : '' ?>">
-            <a href="#" class="side-menu__item">
-                <i class="ti-shopping-cart-full side-menu__icon"></i>
-                <span class="side-menu__label">Penjualan & Retur</span>
-                <i class="fe fe-chevron-right side-menu__angle"></i>
-            </a>
-            <ul class="slide-menu child2">
-                <li><a href="<?= BASE_URL ?>/modules/shared/penjualan/index.php" class="side-menu__item <?= str_contains($current_uri, 'penjualan/transaksi.php') ? 'active' : '' ?>">Input Penjualan</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/shared/retur_penjualan/index.php" class="side-menu__item <?= str_contains($current_uri, '/retur_penjualan') ? 'active' : '' ?>">Retur Penjualan</a></li>
-            </ul>
-        </li>
-
-        <!-- DISTRIBUSI -->
-        <li class="slide__category"><span class="category-name">Distribusi</span></li>
-        <?php $distribusi_uri = ['/pengiriman', '/pembayaran']; ?>
-        <li class="slide has-sub <?= is_uri_match($distribusi_uri) ? 'open active' : '' ?>">
-            <a href="#" class="side-menu__item">
-                <i class="ti-truck side-menu__icon"></i>
-                <span class="side-menu__label">Pengiriman & Pembayaran</span>
-                <i class="fe fe-chevron-right side-menu__angle"></i>
-            </a>
-            <ul class="slide-menu child2">
-                <li><a href="<?= BASE_URL ?>/modules/shared/pengiriman/index.php" class="side-menu__item <?= str_contains($current_uri, '/pengiriman') ? 'active' : '' ?>">Pengiriman</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/shared/pembayaran/index.php" class="side-menu__item <?= str_contains($current_uri, '/pembayaran') ? 'active' : '' ?>">Pembayaran</a></li>
-            </ul>
-        </li>
-
-        <!-- SUPPLIER -->
-        <li class="slide__category"><span class="category-name">Mitra</span></li>
-        <li class="slide <?= str_contains($current_uri, '/supplier') ? 'active' : '' ?>">
-            <a href="<?= BASE_URL ?>/modules/shared/supplier/index.php" class="side-menu__item">
-                <i class="ti-user side-menu__icon"></i>
-                <span class="side-menu__label">Supplier</span>
+        <!-- RESTOK -->
+        <li class="slide__category"><span class="category-name">Permintaan</span></li>
+        <li class="slide <?= strpos($current_uri, '/modules/shared/restock_supplier/') !== false ? 'active' : '' ?>">
+            <a href="<?= BASE_URL ?>/modules/shared/restock_supplier/index.php" class="side-menu__item">
+                <i class="ti-reload side-menu__icon"></i>
+                <span class="side-menu__label">Restok Supplier</span>
             </a>
         </li>
 
         <!-- LAPORAN -->
         <li class="slide__category"><span class="category-name">Laporan</span></li>
-        <li class="slide <?= str_contains($current_uri, '/laporan/stok') ? 'active' : '' ?>">
-            <a href="<?= BASE_URL ?>/modules/shared/laporan/stok.php" class="side-menu__item">
+        <?php $laporan_uri = [
+            '/modules/shared/laporan/stok_barang',
+            '/modules/shared/laporan/produk_tidak_laku',
+            '/modules/shared/laporan/pengiriman'
+        ]; ?>
+        <li class="slide has-sub <?= is_uri_match($laporan_uri) ? 'open active' : '' ?>">
+            <a href="#" class="side-menu__item">
                 <i class="ti-bar-chart side-menu__icon"></i>
-                <span class="side-menu__label">Laporan Stok</span>
+                <span class="side-menu__label">Laporan</span>
+                <i class="fe fe-chevron-right side-menu__angle"></i>
             </a>
+            <ul class="slide-menu child2">
+                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/stok_barang.php" class="side-menu__item <?= strpos($current_uri, 'laporan/stok_barang') !== false ? 'active' : '' ?>">Stok Barang</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/produk_tidak_laku.php" class="side-menu__item <?= strpos($current_uri, 'laporan/produk_tidak_laku') !== false ? 'active' : '' ?>">Produk Tidak Laku</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/laporan/pengiriman.php" class="side-menu__item <?= strpos($current_uri, 'laporan/pengiriman') !== false ? 'active' : '' ?>">Pengiriman</a></li>
+            </ul>
         </li>
 
         <!-- NOTIFIKASI -->
         <li class="slide__category"><span class="category-name">Notifikasi</span></li>
-        <li class="slide <?= str_contains($current_uri, '/notifikasi_stok') ? 'active' : '' ?>">
+        <li class="slide <?= strpos($current_uri, '/modules/shared/notifikasi_stok/') !== false ? 'active' : '' ?>">
             <a href="<?= BASE_URL ?>/modules/shared/notifikasi_stok/index.php" class="side-menu__item">
                 <i class="ti-alert side-menu__icon"></i>
                 <span class="side-menu__label">Stok Menipis</span>
                 <span class="badge bg-danger ms-auto" id="notif-stok"></span>
             </a>
         </li>
-
     </ul>
 </nav>
 <!-- End::nav -->

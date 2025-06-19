@@ -3,8 +3,11 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/config/constants.php';
 require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
-$role = $_SESSION['role'] ?? null;
-
+$role = $_SESSION['role'];
+if (!in_array($role, ['admin', 'karyawan'])) {
+    header("Location: " . BASE_URL . "/unauthorized.php");
+    exit;
+}
 $query = "
     SELECT bk.*, b.nama_barang, b.satuan, g.nama_gudang
     FROM barang_keluar bk
@@ -25,7 +28,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
         <div class="card custom-card shadow-sm mt-5">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="card-title mb-0">Manajemen Data Barang Keluar</div>
-                <?php if ($role === 'admin') : ?>
+                <?php if ($role === 'admin' || $role === 'karyawan') : ?>
                     <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm btn-primary" title="Tambah Barang Keluar">
                         <i class="fe fe-plus"></i> Tambah
                     </a>
@@ -49,7 +52,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                 <th>Jenis</th>
                                 <th>Tujuan</th>
                                 <th>Keterangan</th>
-                                <?php if ($role === 'admin') : ?>
+                                <?php if ($role === 'admin' || $role === 'karyawan') : ?>
                                     <th class="text-center">Aksi</th>
                                 <?php endif; ?>
                             </tr>
@@ -76,7 +79,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                     </td>
                                     <td><?= htmlspecialchars($row['tujuan'] ?? '-') ?></td>
                                     <td><?= htmlspecialchars($row['keterangan'] ?? '-') ?></td>
-                                    <?php if ($role === 'admin') : ?>
+                                    <?php if ($role === 'admin' || $role === 'karyawan') : ?>
                                         <td class="text-center">
                                             <div class="btn-list d-flex justify-content-center">
                                                 <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-icon btn-warning me-1" title="Edit">

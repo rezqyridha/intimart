@@ -22,7 +22,7 @@ $query = "
 ";
 
 if ($_SESSION['role'] === 'sales') {
-    $query .= " AND p.id_sales = " . $_SESSION['id'];
+    $query .= " AND p.id_sales = " . $_SESSION['id_user'];
 } elseif ($id_sales !== '') {
     $query .= " AND p.id_sales = " . intval($id_sales);
 }

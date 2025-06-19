@@ -4,7 +4,10 @@ require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
 $role = $_SESSION['role'];
-$username = $_SESSION['username'] ?? 'User';
+if (!in_array($role, ['admin', 'karyawan'])) {
+    header("Location: " . BASE_URL . "/unauthorized.php");
+    exit;
+}
 
 $query = "SELECT * FROM barang ORDER BY nama_barang ASC";
 $result = $koneksi->query($query);

@@ -4,9 +4,8 @@ require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
 $role = $_SESSION['role'];
-
-if (!in_array($role, ['admin', 'karyawan', 'manajer'])) {
-    header("Location: " . BASE_URL . "/notfound.php");
+if (!in_array($role, ['admin', 'karyawan'])) {
+    header("Location: " . BASE_URL . "/unauthorized.php");
     exit;
 }
 
@@ -29,9 +28,11 @@ require_once LAYOUTS_PATH . '/sidebar.php';
         <div class="card custom-card shadow-sm mt-5">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="card-title mb-0">Manajemen Data Barang Masuk</div>
-                <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm btn-primary" title="Tambah Barang Masuk">
-                    <i class="fe fe-plus"></i> Tambah
-                </a>
+                <?php if (in_array($role, ['admin', 'karyawan'])): ?>
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalTambah" class="btn btn-sm btn-primary" title="Tambah Barang Masuk">
+                        <i class="fe fe-plus"></i> Tambah
+                    </a>
+                <?php endif; ?>
             </div>
 
             <div class="card-body">
@@ -50,7 +51,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                 <th>Jumlah</th>
                                 <th>Keterangan</th>
                                 <th>Oleh</th>
-                                <?php if ($role === 'admin'): ?>
+                                <?php if (in_array($role, ['admin', 'karyawan'])): ?>
                                     <th class="text-center">Aksi</th>
                                 <?php endif; ?>
                             </tr>
@@ -66,7 +67,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                     <td><?= $row['jumlah'] ?></td>
                                     <td><?= htmlspecialchars($row['keterangan'] ?? '-') ?></td>
                                     <td><?= htmlspecialchars($row['user_input'] ?? '-') ?></td>
-                                    <?php if ($role === 'admin'): ?>
+                                    <?php if (in_array($role, ['admin', 'karyawan'])): ?>
                                         <td class="text-center">
                                             <div class="btn-list d-flex justify-content-center">
                                                 <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-icon btn-warning me-1" title="Edit">

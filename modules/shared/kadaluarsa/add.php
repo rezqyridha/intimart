@@ -4,7 +4,7 @@ require_once CONFIG_PATH . '/koneksi.php';
 require_once AUTH_PATH . '/session.php';
 
 $role = $_SESSION['role'] ?? '';
-if (!in_array($role, ['admin', 'sales'])) {
+if (!in_array($role, ['admin', 'karyawan'])) {
     header("Location: index.php?msg=unauthorized&obj=kadaluarsa");
     exit;
 }

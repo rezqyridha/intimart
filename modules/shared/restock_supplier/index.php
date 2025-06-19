@@ -4,8 +4,8 @@
     require_once CONFIG_PATH . '/koneksi.php';
 
     $role = $_SESSION['role'];
-    $canEdit = in_array($role, ['admin', 'manajer']);
-    $canAdd = in_array($role, ['admin', 'manajer', 'karyawan']);
+    $canEdit = in_array($role, ['admin',]);
+    $canAdd = in_array($role, ['admin',  'karyawan']);
 
     // Ambil data
     $query = "

@@ -3,54 +3,69 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/config/constants.php';
 require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
-$role = $_SESSION['role'];
-if ($role !== 'admin') {
+$role     = $_SESSION['role'];
+$id_user  = $_SESSION['id_user'];
+
+if (!in_array($role, ['admin', 'sales'])) {
     header("Location: " . BASE_URL . "/unauthorized.php");
     exit;
 }
 
-// Ambil input
-$id_penjualan = $_POST['id_penjualan'] ?? '';
-$jumlah_bayar = $_POST['jumlah_bayar'] ?? '';
-$metode = $_POST['metode'] ?? '';
-$keterangan = $_POST['keterangan'] ?? null;
-$tanggal = $_POST['tanggal'] ?? date('Y-m-d');
+// Ambil & sanitasi input
+$id_penjualan   = intval($_POST['id_penjualan'] ?? 0);
+$jumlah_bayar   = floatval($_POST['jumlah_bayar'] ?? 0);
+$metode         = trim($_POST['metode'] ?? '');
+$keterangan     = trim($_POST['keterangan'] ?? '');
+$tanggal        = trim($_POST['tanggal'] ?? date('Y-m-d'));
 
-// Validasi kosong
-if (empty($id_penjualan) || empty($jumlah_bayar) || empty($metode) || empty($tanggal)) {
+// Validasi dasar
+if (!$id_penjualan || !$jumlah_bayar || !$metode || !$tanggal) {
     header("Location: index.php?msg=kosong&obj=pembayaran");
     exit;
 }
-
-// Ambil total transaksi dari penjualan
-$qTotal = $koneksi->query("SELECT harga_total FROM penjualan WHERE id = $id_penjualan");
-$dataTotal = $qTotal->fetch_assoc();
-$total_penjualan = $dataTotal['harga_total'] ?? 0;
-
-// Hitung total pembayaran sebelumnya
-$qBayar = $koneksi->query("SELECT SUM(jumlah_bayar) AS total_bayar FROM pembayaran WHERE id_penjualan = $id_penjualan");
-$bayarSebelumnya = $qBayar->fetch_assoc()['total_bayar'] ?? 0;
-
-// Cek apakah sudah lunas
-if ($bayarSebelumnya >= $total_penjualan) {
-    header("Location: index.php?msg=duplicate&obj=pembayaran");
-    exit;
-}
-
-// Cek apakah jumlah_bayar akan menyebabkan kelebihan bayar
-if (($bayarSebelumnya + $jumlah_bayar) > $total_penjualan) {
+if ($jumlah_bayar <= 0) {
     header("Location: index.php?msg=invalid&obj=pembayaran");
     exit;
 }
 
-// Simpan pembayaran
-$stmt = $koneksi->prepare("INSERT INTO pembayaran (id_penjualan, jumlah_bayar, metode, keterangan, tanggal) VALUES (?, ?, ?, ?, ?)");
+// Validasi akses khusus sales
+if ($role === 'sales') {
+    $cek = $koneksi->query("SELECT id FROM penjualan WHERE id = $id_penjualan AND id_sales = $id_user");
+    if ($cek->num_rows === 0) {
+        header("Location: index.php?msg=unauthorized");
+        exit;
+    }
+}
+
+// Ambil total transaksi
+$qTotal = $koneksi->query("SELECT harga_total FROM penjualan WHERE id = $id_penjualan");
+$total_penjualan = floatval($qTotal->fetch_assoc()['harga_total'] ?? 0);
+
+// Hitung total pembayaran sebelumnya
+$qBayar = $koneksi->query("SELECT SUM(jumlah_bayar) AS total_bayar FROM pembayaran WHERE id_penjualan = $id_penjualan");
+$bayar_sebelumnya = floatval($qBayar->fetch_assoc()['total_bayar'] ?? 0);
+
+// Validasi pelunasan
+if ($bayar_sebelumnya >= $total_penjualan) {
+    header("Location: index.php?msg=duplicate&obj=pembayaran");
+    exit;
+}
+if (($bayar_sebelumnya + $jumlah_bayar) > $total_penjualan) {
+    header("Location: index.php?msg=invalid&obj=pembayaran&info=overpaid");
+    exit;
+}
+
+// Simpan ke DB
+$stmt = $koneksi->prepare("
+    INSERT INTO pembayaran (id_penjualan, jumlah_bayar, metode, keterangan, tanggal)
+    VALUES (?, ?, ?, ?, ?)
+");
 $stmt->bind_param("idsss", $id_penjualan, $jumlah_bayar, $metode, $keterangan, $tanggal);
 
 if ($stmt->execute()) {
     // Update status pelunasan jika lunas
-    $totalSetelahBayar = $bayarSebelumnya + $jumlah_bayar;
-    if ($totalSetelahBayar >= $total_penjualan) {
+    $total_bayar = $bayar_sebelumnya + $jumlah_bayar;
+    if ($total_bayar >= $total_penjualan) {
         $koneksi->query("UPDATE penjualan SET status_pelunasan = 'lunas' WHERE id = $id_penjualan");
     }
 
@@ -58,3 +73,4 @@ if ($stmt->execute()) {
 } else {
     header("Location: index.php?msg=failed&obj=pembayaran");
 }
+exit;
