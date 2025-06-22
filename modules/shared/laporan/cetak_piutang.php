@@ -13,7 +13,7 @@ $sampai = $_GET['sampai'] ?? date('Y-m-d');
 $id_sales = $_GET['sales'] ?? '';
 
 $query = "
-    SELECT p.tanggal, u.nama_lengkap AS nama_sales, b.nama_barang, 
+    SELECT p.tanggal, u.nama_lengkap AS nama_sales, b.nama_barang, b.satuan,
            p.harga_total, 
            COALESCE((SELECT SUM(jumlah_bayar) FROM pembayaran WHERE id_penjualan = p.id), 0) AS total_bayar,
            (p.harga_total - COALESCE((SELECT SUM(jumlah_bayar) FROM pembayaran WHERE id_penjualan = p.id), 0)) AS sisa
@@ -63,15 +63,41 @@ $pdf->SetFont('Arial', '', 10);
 $no = 1;
 $total_all = 0;
 while ($row = $data->fetch_assoc()) {
-    $pdf->Cell(10, 7, $no++, 1);
-    $pdf->Cell(22, 7, date('d-m-Y', strtotime($row['tanggal'])), 1);
-    $pdf->Cell(43, 7, substr($row['nama_barang'], 0, 35), 1);
-    $pdf->Cell(38, 7, substr($row['nama_sales'], 0, 30), 1);
-    $pdf->Cell(27, 7, 'Rp ' . number_format($row['harga_total'], 0, ',', '.'), 1, 0, 'R');
-    $pdf->Cell(27, 7, 'Rp ' . number_format($row['total_bayar'], 0, ',', '.'), 1, 0, 'R');
-    $pdf->Cell(23, 7, 'Rp ' . number_format($row['sisa'], 0, ',', '.'), 1, 1, 'R');
-    $total_all += $row['sisa'];
+    $tanggal = date('d-m-Y', strtotime($row['tanggal']));
+    $barang = $row['nama_barang'] . ' (' . $row['satuan'] . ')';
+    $sales = $row['nama_sales'];
+    $total = $row['harga_total'];
+    $terbayar = $row['total_bayar'];
+    $sisa = $row['sisa'];
+
+    $x = $pdf->GetX();
+    $y = $pdf->GetY();
+
+    // Cetak barang dulu (MultiCell)
+    $pdf->SetXY($x + 10 + 22, $y); // Lewati No + Tanggal
+    $pdf->MultiCell(43, 6, $barang, 1);
+    $cellHeight = $pdf->GetY() - $y;
+
+    // Kolom No
+    $pdf->SetXY($x, $y);
+    $pdf->Cell(10, $cellHeight, $no++, 1, 0, 'C');
+
+    // Kolom Tanggal
+    $pdf->SetXY($x + 10, $y);
+    $pdf->Cell(22, $cellHeight, $tanggal, 1);
+
+    // Kolom Sales
+    $pdf->SetXY($x + 10 + 22 + 43, $y);
+    $pdf->Cell(38, $cellHeight, $sales, 1);
+
+    // Total, Terbayar, Sisa
+    $pdf->Cell(27, $cellHeight, 'Rp ' . number_format($total, 0, ',', '.'), 1, 0, 'R');
+    $pdf->Cell(27, $cellHeight, 'Rp ' . number_format($terbayar, 0, ',', '.'), 1, 0, 'R');
+    $pdf->Cell(23, $cellHeight, 'Rp ' . number_format($sisa, 0, ',', '.'), 1, 1, 'R');
+
+    $total_all += $sisa;
 }
+
 
 // Footer total, merge kolom dan "Total Seluruh" di kiri
 $pdf->SetFont('Arial', 'B', 10);

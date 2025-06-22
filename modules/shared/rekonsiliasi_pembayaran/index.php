@@ -127,7 +127,9 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                                 <i class="fe fe-trash-2"></i>
                                             </button>
                                         <?php else: ?>
-                                            <span class="badge bg-light text-muted"><i class="fe fe-lock me-1"></i> Final</span>
+                                            <span class="badge bg-light text-dark border">
+                                                <i class="fe fe-lock me-1"></i> Final
+                                            </span>
                                         <?php endif; ?>
                                     </td>
                                 </tr>

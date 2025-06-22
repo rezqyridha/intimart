@@ -11,12 +11,10 @@ if (!in_array($role, ['admin', 'manajer', 'sales'])) {
     die("Akses ditolak.");
 }
 
-// Filter input
 $dari = $_GET['dari'] ?? date('Y-m-01');
 $sampai = $_GET['sampai'] ?? date('Y-m-d');
 $id_sales = $_GET['sales'] ?? '';
 
-// Query data
 $query = "
     SELECT r.*, p.id_sales, p.id_barang, u.nama_lengkap AS nama_sales,
            b.nama_barang, b.satuan
@@ -32,11 +30,10 @@ if ($role === 'sales') {
 } elseif ($id_sales !== '') {
     $query .= " AND p.id_sales = " . intval($id_sales);
 }
-
 $query .= " ORDER BY r.tanggal ASC";
 $data = $koneksi->query($query);
 
-// Setup PDF
+// PDF Setup
 $pdf = new FPDF('P', 'mm', 'A4');
 $pdf->AddPage();
 
@@ -55,7 +52,7 @@ $pdf->SetFont('Arial', '', 10);
 $pdf->Cell(0, 6, 'Periode: ' . date('d/m/Y', strtotime($dari)) . ' s.d ' . date('d/m/Y', strtotime($sampai)), 0, 1, 'C');
 $pdf->Ln(4);
 
-// Table Header
+// Header Tabel
 $pdf->SetFont('Arial', 'B', 10);
 $pdf->SetFillColor(230, 230, 230);
 $pdf->Cell(10, 8, 'No', 1, 0, 'C', true);
@@ -65,17 +62,38 @@ $pdf->Cell(40, 8, 'Sales', 1, 0, 'C', true);
 $pdf->Cell(20, 8, 'Jumlah', 1, 0, 'C', true);
 $pdf->Cell(50, 8, 'Alasan', 1, 1, 'C', true);
 
-// Table Body
+// Body Tabel
 $pdf->SetFont('Arial', '', 10);
 $no = 1;
 while ($row = $data->fetch_assoc()) {
+    $tanggal = date('d-m-Y', strtotime($row['tanggal']));
     $barang = $row['nama_barang'] . ' (' . $row['satuan'] . ')';
-    $pdf->Cell(10, 7, $no++, 1);
-    $pdf->Cell(25, 7, date('d-m-Y', strtotime($row['tanggal'])), 1);
-    $pdf->Cell(45, 7, substr($barang, 0, 40), 1);
-    $pdf->Cell(40, 7, substr($row['nama_sales'], 0, 30), 1);
-    $pdf->Cell(20, 7, $row['jumlah'], 1, 0, 'C');
-    $pdf->Cell(50, 7, substr($row['alasan'], 0, 50), 1, 1);
+    $sales = $row['nama_sales'];
+    $jumlah = $row['jumlah'];
+    $alasan = $row['alasan'];
+
+    $x = $pdf->GetX();
+    $y = $pdf->GetY();
+
+    // MultiCell Barang
+    $pdf->SetXY($x + 10 + 25, $y); // skip No dan Tanggal
+    $pdf->MultiCell(45, 6, $barang, 1);
+    $cellHeight = $pdf->GetY() - $y;
+
+    // No
+    $pdf->SetXY($x, $y);
+    $pdf->Cell(10, $cellHeight, $no++, 1, 0, 'C');
+
+    // Tanggal
+    $pdf->SetXY($x + 10, $y);
+    $pdf->Cell(25, $cellHeight, $tanggal, 1);
+
+    // Sales & Lainnya
+    $pdf->SetXY($x + 10 + 25 + 45, $y);
+    $pdf->Cell(40, $cellHeight, $sales, 1);
+    $pdf->Cell(20, $cellHeight, $jumlah, 1, 0, 'C');
+    $pdf->Cell(50, $cellHeight, $alasan, 1);
+    $pdf->Ln();
 }
 
 // Footer

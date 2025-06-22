@@ -16,7 +16,6 @@ $sampai = $_GET['sampai'] ?? date('Y-m-d');
 $statusFilter = $_GET['status'] ?? '';
 $salesFilter = $_GET['sales'] ?? '';
 
-// Query data
 $query = "
     SELECT p.*, b.nama_barang, b.satuan, u.nama_lengkap AS nama_sales
     FROM pemesanan p
@@ -24,7 +23,6 @@ $query = "
     JOIN user u ON p.id_sales = u.id
     WHERE DATE(p.tanggal_pemesanan) BETWEEN '$dari' AND '$sampai'
 ";
-
 if ($role === 'sales') {
     $query .= " AND p.id_sales = $idUser";
 } elseif ($salesFilter !== '') {
@@ -36,7 +34,7 @@ if ($statusFilter !== '') {
 $query .= " ORDER BY p.tanggal_pemesanan DESC";
 $data = $koneksi->query($query);
 
-// PDF Header
+// Header PDF
 $pdf = new FPDF('P', 'mm', 'A4');
 $pdf->AddPage();
 $pdf->SetFont('Arial', 'B', 14);
@@ -53,7 +51,7 @@ $pdf->SetFont('Arial', '', 10);
 $pdf->Cell(0, 6, "Periode: " . date('d/m/Y', strtotime($dari)) . " s.d " . date('d/m/Y', strtotime($sampai)), 0, 1, 'C');
 $pdf->Ln(4);
 
-// HEADER TABEL
+// Header Tabel
 $pdf->SetFont('Arial', 'B', 10);
 $pdf->SetFillColor(230, 230, 230);
 $pdf->Cell(10, 8, 'No', 1, 0, 'C', true);
@@ -64,7 +62,7 @@ $pdf->Cell(10, 8, 'Jml', 1, 0, 'C', true);
 $pdf->Cell(25, 8, 'Status', 1, 0, 'C', true);
 $pdf->Cell(30, 8, 'Respon', 1, 1, 'C', true);
 
-// BODY TABEL
+// Body Tabel
 $pdf->SetFont('Arial', '', 10);
 $no = 1;
 while ($row = $data->fetch_assoc()) {
@@ -75,15 +73,28 @@ while ($row = $data->fetch_assoc()) {
     $respon = $row['tanggal_direspon'] ? date('d-m-Y H:i', strtotime($row['tanggal_direspon'])) : '-';
     $status = ucfirst($row['status']);
 
-    $pdf->Cell(10, 7, $no++, 1);
-    $pdf->Cell(30, 7, $tanggal, 1);
-    $pdf->Cell(50, 7, substr($barang, 0, 50), 1);
-    $pdf->Cell(35, 7, substr($sales, 0, 30), 1);
-    $pdf->Cell(10, 7, $jumlah, 1, 0, 'C');
-    $pdf->Cell(25, 7, $status, 1, 0, 'C');
-    $pdf->Cell(30, 7, $respon, 1, 1, 'C');
-}
+    $x = $pdf->GetX();
+    $y = $pdf->GetY();
 
+    // MultiCell Barang (hitung tinggi)
+    $pdf->SetXY($x + 10 + 30, $y); // Lewati No dan Tanggal
+    $pdf->MultiCell(50, 6, $barang, 1);
+    $barisTinggi = $pdf->GetY() - $y;
+
+    // Kembali ke awal baris
+    $pdf->SetXY($x, $y);
+    $pdf->Cell(10, $barisTinggi, $no++, 1, 0, 'C');
+    $pdf->Cell(30, $barisTinggi, $tanggal, 1);
+
+    // Lanjut setelah barang (50)
+    $pdf->SetXY($x + 10 + 30 + 50, $y);
+    $pdf->Cell(35, $barisTinggi, $sales, 1);
+    $pdf->Cell(10, $barisTinggi, $jumlah, 1, 0, 'C');
+    $pdf->Cell(25, $barisTinggi, $status, 1, 0, 'C');
+    $align = ($respon === '-') ? 'C' : 'L';
+    $pdf->Cell(30, $barisTinggi, $respon, 1, 0, $align);
+    $pdf->Ln();
+}
 
 // Footer
 $pdf->Ln(10);

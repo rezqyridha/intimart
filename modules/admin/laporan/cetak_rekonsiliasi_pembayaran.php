@@ -61,17 +61,37 @@ $pdf->Cell(30, 8, 'Tgl Bayar', 1, 0, 'C', true);
 $pdf->Cell(30, 8, 'Tgl Rekon', 1, 0, 'C', true);
 $pdf->Cell(30, 8, 'Status', 1, 1, 'C', true);
 
+// Table body
 $pdf->SetFont('Arial', '', 10);
 $no = 1;
+$no = 1;
 while ($row = $data->fetch_assoc()) {
-    $pdf->Cell(10, 7, $no++, 1);
-    $pdf->Cell(35, 7, substr($row['nama_barang'], 0, 35), 1);
-    $pdf->Cell(25, 7, ucfirst($row['metode']), 1);
-    $pdf->Cell(30, 7, 'Rp ' . number_format($row['jumlah_bayar'], 0, ',', '.'), 1, 0, 'R');
-    $pdf->Cell(30, 7, date('d-m-Y', strtotime($row['tanggal'])), 1);
-    $pdf->Cell(30, 7, date('d-m-Y', strtotime($row['tanggal_rekonsiliasi'])), 1);
-    $pdf->Cell(30, 7, ucwords(str_replace('_', ' ', $row['status'])), 1, 1);
+    $barangText = $row['nama_barang'] . ' (' . $row['satuan'] . ')';
+
+    // Simpan posisi awal
+    $x = $pdf->GetX();
+    $y = $pdf->GetY();
+
+    // Cetak MultiCell Barang (diukur dulu)
+    $x1 = $x + 10; // setelah kolom no
+    $pdf->SetXY($x1, $y);
+    $pdf->MultiCell(35, 6, $barangText, 1);
+    $cellHeight = $pdf->GetY() - $y;
+
+    // Cetak kolom No dengan tinggi menyesuaikan
+    $pdf->SetXY($x, $y);
+    $pdf->Cell(10, $cellHeight, $no++, 1, 0, 'C');
+
+    // Lanjut kolom lain
+    $pdf->SetXY($x1 + 35, $y);
+    $pdf->Cell(25, $cellHeight, ucfirst($row['metode']), 1);
+    $pdf->Cell(30, $cellHeight, 'Rp ' . number_format($row['jumlah_bayar'], 0, ',', '.'), 1, 0, 'R');
+    $pdf->Cell(30, $cellHeight, date('d-m-Y', strtotime($row['tanggal'])), 1);
+    $pdf->Cell(30, $cellHeight, date('d-m-Y', strtotime($row['tanggal_rekonsiliasi'])), 1);
+    $pdf->Cell(30, $cellHeight, ucwords(str_replace('_', ' ', $row['status'])), 1);
+    $pdf->Ln();
 }
+
 
 // Footer tanda tangan
 $pdf->Ln(10);

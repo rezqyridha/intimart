@@ -16,7 +16,7 @@ $id_sales = $_GET['sales'] ?? '';
 
 //  Query penjualan berdasarkan peran
 $query = "
-SELECT p.*, b.nama_barang, u.nama_lengkap AS nama_sales
+SELECT p.*, b.nama_barang, b.satuan, u.nama_lengkap AS nama_sales
 FROM penjualan p
 JOIN barang b ON p.id_barang = b.id
 JOIN user u ON u.id = p.id_sales
@@ -108,7 +108,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                             <tr>
                                 <td><?= $no++ ?></td>
                                 <td><?= date('d-m-Y', strtotime($row['tanggal'])) ?></td>
-                                <td><?= htmlspecialchars($row['nama_barang']) ?></td>
+                                <td><?= htmlspecialchars($row['nama_barang']) ?> (<?= $row['satuan'] ?>)</td>
                                 <td><?= htmlspecialchars($row['nama_sales']) ?></td>
                                 <td><?= $row['jumlah'] ?></td>
                                 <td>Rp <?= number_format($row['harga_total'], 0, ',', '.') ?></td>

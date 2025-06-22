@@ -12,15 +12,14 @@ $dari = $_GET['dari'] ?? date('Y-m-01');
 $sampai = $_GET['sampai'] ?? date('Y-m-d');
 $statusFilter = $_GET['status'] ?? '';
 
-// Query semua barang dengan total dan tanggal terakhir penjualan
+// Query analisis performa penjualan per barang
 $query = "
     SELECT 
         b.id, b.nama_barang, b.satuan,
         COALESCE(SUM(p.jumlah), 0) AS total_terjual,
         MAX(p.tanggal) AS terakhir_terjual
     FROM barang b
-    LEFT JOIN penjualan p 
-        ON b.id = p.id_barang AND p.tanggal BETWEEN '$dari' AND '$sampai'
+    LEFT JOIN penjualan p ON b.id = p.id_barang AND p.tanggal BETWEEN '$dari' AND '$sampai'
     GROUP BY b.id
     ORDER BY b.nama_barang ASC
 ";
@@ -35,7 +34,8 @@ require_once LAYOUTS_PATH . '/sidebar.php';
 <div class="main-content app-content">
     <div class="container-fluid">
 
-        <h3 class="mt-4 mb-3">📦 Laporan Produk Tidak Laku</h3>
+        <h3 class="mt-4 mb-1">📊 Analisis Produk Tidak Laku</h3>
+        <p class="text-muted mb-4">Laporan ini menunjukkan status kelakuan produk berdasarkan penjualan selama periode tertentu.</p>
 
         <form method="GET" class="row g-2 align-items-end mb-4">
             <div class="col-md-3">
@@ -97,11 +97,9 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                 <td><?= $row['total_terjual'] ?></td>
                                 <td><?= $tgl ?></td>
                                 <td>
-                                    <?php if ($isLaku): ?>
-                                        <span class="badge bg-success">Laku</span>
-                                    <?php else: ?>
-                                        <span class="badge bg-danger">Tidak Laku</span>
-                                    <?php endif; ?>
+                                    <span class="badge bg-<?= $isLaku ? 'success' : 'danger' ?>">
+                                        <?= $isLaku ? 'Laku' : 'Tidak Laku' ?>
+                                    </span>
                                 </td>
                             </tr>
                         <?php endwhile; ?>
@@ -112,6 +110,11 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                         <?php endif; ?>
                     </tbody>
                 </table>
+
+                <p class="text-muted small mt-3">
+                    Keterangan: Barang dengan total penjualan <strong>0</strong> selama periode dipilih dikategorikan sebagai
+                    <span class="badge bg-danger">Tidak Laku</span>.
+                </p>
             </div>
         </div>
 

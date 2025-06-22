@@ -26,7 +26,7 @@ function is_uri_match(array $patterns): bool
 
         <!-- MODUL VIEW-ONLY -->
         <li class="slide__category"><span class="category-name">Modul View-Only</span></li>
-        <?php $modul_uri = ['/stok_fisik', '/gudang', '/restock_supplier', '/rekonsiliasi_pembayaran']; ?>
+        <?php $modul_uri = ['/stok_fisik', '/produk_tidak_laku', '/gudang', '/restock_supplier', '/rekonsiliasi_pembayaran']; ?>
         <li class="slide has-sub <?= is_uri_match($modul_uri) ? 'open active' : '' ?>">
             <a href="#" class="side-menu__item">
                 <i class="bi bi-eye side-menu__icon"></i>
@@ -35,6 +35,7 @@ function is_uri_match(array $patterns): bool
             </a>
             <ul class="slide-menu child2">
                 <li><a href="<?= BASE_URL ?>/modules/shared/stok_fisik/index.php" class="side-menu__item <?= str_contains($current_uri, '/stok_fisik') ? 'active' : '' ?>">Stok Fisik</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/produk_tidak_laku/index.php" class="side-menu__item <?= str_contains($current_uri, '/produk_tidak_laku/') ? 'active' : '' ?>">Produk Tidak Laku</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/gudang/index.php" class="side-menu__item <?= str_contains($current_uri, '/gudang') ? 'active' : '' ?>">Gudang</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/restock_supplier/index.php" class="side-menu__item <?= str_contains($current_uri, '/restock_supplier') ? 'active' : '' ?>">Restok Supplier</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/rekonsiliasi_pembayaran/index.php" class="side-menu__item <?= str_contains($current_uri, '/rekonsiliasi_pembayaran') ? 'active' : '' ?>">Rekonsiliasi Pembayaran</a></li>

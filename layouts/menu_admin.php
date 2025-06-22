@@ -116,7 +116,7 @@ function is_uri_match(array $patterns): bool
         <!-- LAPORAN -->
         <li class="slide__category"><span class="category-name">Laporan</span></li>
         <?php
-        $laporan_uri = ['/laporan/penjualan', '/laporan/keuangan', '/laporan/stok_barang', '/laporan/piutang', '/laporan/pemesanan', '/laporan/retur_penjualan', '/laporan/produk_tidak_laku', '/laporan/target_sales', '/laporan/pengiriman', '/laporan/rekonsiliasi_pembayaran'];
+        $laporan_uri = ['/laporan/penjualan', '/laporan/kas', '/laporan/stok_barang', '/laporan/piutang', '/laporan/pemesanan', '/laporan/retur_penjualan', '/laporan/produk_tidak_laku', '/laporan/target_sales', '/laporan/pengiriman', '/laporan/rekonsiliasi_pembayaran'];
         ?>
         <li class="slide has-sub <?= is_uri_match($laporan_uri) ? 'open active' : '' ?>">
             <a href="#" class="side-menu__item">
@@ -126,7 +126,7 @@ function is_uri_match(array $patterns): bool
             </a>
             <ul class="slide-menu child2">
                 <li><a href="<?= BASE_URL ?>/modules/shared/laporan/penjualan.php" class="side-menu__item <?= str_contains($current_uri, 'laporan/penjualan') ? 'active' : '' ?>">Penjualan</a></li>
-                <li><a href="<?= BASE_URL ?>/modules/admin/laporan/kas.php" class="side-menu__item <?= str_contains($current_uri, 'laporan/keuangan') ? 'active' : '' ?>">Keuangan</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/admin/laporan/kas.php" class="side-menu__item <?= str_contains($current_uri, 'laporan/kas') ? 'active' : '' ?>">Keuangan</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/admin/laporan/rekonsiliasi_pembayaran.php" class="side-menu__item <?= str_contains($current_uri, 'laporan/rekonsiliasi_pembayaran') ? 'active' : '' ?>">Rekonsiliasi</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/laporan/piutang.php" class="side-menu__item <?= str_contains($current_uri, 'laporan/piutang') ? 'active' : '' ?>">Piutang</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/laporan/stok_barang.php" class="side-menu__item <?= str_contains($current_uri, 'laporan/stok_barang') ? 'active' : '' ?>">Stok Barang</a></li>

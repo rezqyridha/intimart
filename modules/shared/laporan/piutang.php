@@ -14,7 +14,7 @@ $id_sales = $_GET['sales'] ?? '';
 
 // Query piutang otomatis dari penjualan
 $query = "
-    SELECT p.id, p.tanggal, u.nama_lengkap AS nama_sales, b.nama_barang, 
+    SELECT p.id, p.tanggal, u.nama_lengkap AS nama_sales, b.nama_barang, b.satuan,
            p.harga_total, 
            COALESCE((SELECT SUM(jumlah_bayar) FROM pembayaran WHERE id_penjualan = p.id), 0) AS total_bayar,
            (p.harga_total - COALESCE((SELECT SUM(jumlah_bayar) FROM pembayaran WHERE id_penjualan = p.id), 0)) AS sisa
@@ -94,7 +94,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                             <tr>
                                 <td><?= $no++ ?></td>
                                 <td><?= date('d-m-Y', strtotime($row['tanggal'])) ?></td>
-                                <td><?= htmlspecialchars($row['nama_barang']) ?></td>
+                                <td><?= htmlspecialchars($row['nama_barang']) ?> (<?= $row['satuan'] ?>)</td>
                                 <td><?= htmlspecialchars($row['nama_sales']) ?></td>
                                 <td>Rp <?= number_format($row['harga_total'], 0, ',', '.') ?></td>
                                 <td>Rp <?= number_format($row['total_bayar'], 0, ',', '.') ?></td>

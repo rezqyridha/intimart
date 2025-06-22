@@ -14,7 +14,7 @@ $sampai = $_GET['sampai'] ?? date('Y-m-d');
 $id_sales = $_GET['sales'] ?? '';
 
 $query = "
-    SELECT p.*, b.nama_barang, u.nama_lengkap AS nama_sales
+    SELECT p.*, b.nama_barang, b.satuan, u.nama_lengkap AS nama_sales
     FROM penjualan p
     JOIN barang b ON p.id_barang = b.id
     JOIN user u ON u.id = p.id_sales
@@ -63,15 +63,45 @@ $pdf->SetFont('Arial', '', 10);
 $no = 1;
 $total_all = 0;
 while ($row = $data->fetch_assoc()) {
-    $pdf->Cell(10, 7, $no++, 1);
-    $pdf->Cell(25, 7, date('d-m-Y', strtotime($row['tanggal'])), 1);
-    $pdf->Cell(45, 7, substr($row['nama_barang'], 0, 35), 1);
-    $pdf->Cell(40, 7, substr($row['nama_sales'], 0, 35), 1);
-    $pdf->Cell(20, 7, $row['jumlah'], 1, 0, 'C');
-    $pdf->Cell(30, 7, 'Rp ' . number_format($row['harga_total'], 0, ',', '.'), 1, 0, 'R');
-    $pdf->Cell(20, 7, $row['status_pelunasan'], 1, 1, 'C');
-    $total_all += $row['harga_total'];
+    $tanggal = date('d-m-Y', strtotime($row['tanggal']));
+    $barang = $row['nama_barang'] . ' (' . $row['satuan'] . ')';
+    $sales = $row['nama_sales'];
+    $jumlah = $row['jumlah'];
+    $total = $row['harga_total'];
+    $status = $row['status_pelunasan'];
+
+    $x = $pdf->GetX();
+    $y = $pdf->GetY();
+
+    // MultiCell Barang
+    $pdf->SetXY($x + 10 + 25, $y); // Skip No + Tanggal
+    $pdf->MultiCell(45, 6, $barang, 1);
+    $cellHeight = $pdf->GetY() - $y;
+
+    // Kolom No
+    $pdf->SetXY($x, $y);
+    $pdf->Cell(10, $cellHeight, $no++, 1, 0, 'C');
+
+    // Kolom Tanggal
+    $pdf->SetXY($x + 10, $y);
+    $pdf->Cell(25, $cellHeight, $tanggal, 1);
+
+    // Kolom Sales
+    $pdf->SetXY($x + 10 + 25 + 45, $y);
+    $pdf->Cell(40, $cellHeight, $sales, 1);
+
+    // Jumlah
+    $pdf->Cell(20, $cellHeight, $jumlah, 1, 0, 'C');
+
+    // Total
+    $pdf->Cell(30, $cellHeight, 'Rp ' . number_format($total, 0, ',', '.'), 1, 0, 'R');
+
+    // Status
+    $pdf->Cell(20, $cellHeight, $status, 1, 1, 'C');
+
+    $total_all += $total;
 }
+
 
 // TOTAL
 $pdf->SetFont('Arial', 'B', 10);
