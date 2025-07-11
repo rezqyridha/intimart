@@ -31,7 +31,8 @@ function is_uri_match(array $patterns): bool
         <?php $trx_uri = [
             '/modules/shared/penjualan/',
             '/modules/shared/pembayaran/',
-            '/modules/shared/retur_penjualan/'
+            '/modules/shared/retur_penjualan/',
+            '/modules/shared/pemesanan/'
         ]; ?>
         <li class="slide has-sub <?= is_uri_match($trx_uri) ? 'open active' : '' ?>">
             <a href="#" class="side-menu__item">
@@ -43,6 +44,7 @@ function is_uri_match(array $patterns): bool
                 <li><a href="<?= BASE_URL ?>/modules/shared/penjualan/index.php" class="side-menu__item <?= strpos($current_uri, '/modules/shared/penjualan/') !== false ? 'active' : '' ?>">Input Penjualan</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/pembayaran/index.php" class="side-menu__item <?= strpos($current_uri, '/modules/shared/pembayaran/') !== false ? 'active' : '' ?>">Pembayaran</a></li>
                 <li><a href="<?= BASE_URL ?>/modules/shared/retur_penjualan/index.php" class="side-menu__item <?= strpos($current_uri, '/modules/shared/retur_penjualan/') !== false ? 'active' : '' ?>">Retur Penjualan</a></li>
+                <li><a href="<?= BASE_URL ?>/modules/shared/pemesanan/index.php" class="side-menu__item <?= strpos($current_uri, '/modules/shared/pemesanan/') !== false ? 'active' : '' ?>">Pemesanan</a></li>
             </ul>
         </li>
 
