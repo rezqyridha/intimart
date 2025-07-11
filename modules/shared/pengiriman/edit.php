@@ -13,8 +13,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tujuan = trim($_POST['tujuan'] ?? '');
     $tanggal_kirim = $_POST['tanggal_kirim'] ?? '';
     $estimasi_tiba = $_POST['estimasi_tiba'] ?? null;
+    $status_pengiriman = $_POST['status_pengiriman'] ?? 'diproses';
     $id_barang = $_POST['id_barang'] ?? [];
     $jumlah = $_POST['jumlah'] ?? [];
+
+    // Validasi status hanya salah satu dari ENUM
+    $allowed_status = ['diproses', 'dikirim', 'diterima'];
+    if (!in_array($status_pengiriman, $allowed_status)) {
+        header("Location: edit.php?id=$id&msg=invalid_status&obj=pengiriman");
+        exit;
+    }
 
     if ($id === '' || !is_numeric($id) || $tujuan === '' || $tanggal_kirim === '' || empty($id_barang) || count($id_barang) !== count($jumlah)) {
         header("Location: edit.php?id=$id&msg=invalid&obj=pengiriman");
@@ -23,10 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     foreach ($id_barang as $i => $idb) {
         $jml = (int) $jumlah[$i];
-
         $sql = "
             SELECT 
-                IFNULL(masuk.total_masuk, 0) -
+                IFNULL(masuk.total_masuk, 0) - 
                 (IFNULL(keluar.total_keluar, 0) + IFNULL(pj.total_terjual, 0) - IFNULL(retur.total_retur, 0)) AS stok_akhir
             FROM barang b
             LEFT JOIN (SELECT id_barang, SUM(jumlah) AS total_masuk FROM barang_masuk GROUP BY id_barang) masuk ON b.id = masuk.id_barang
@@ -54,8 +61,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    $stmt = $koneksi->prepare("UPDATE pengiriman SET tujuan = ?, tanggal_kirim = ?, estimasi_tiba = ? WHERE id = ?");
-    $stmt->bind_param("sssi", $tujuan, $tanggal_kirim, $estimasi_tiba, $id);
+    // ✅ Update termasuk status_pengiriman
+    $stmt = $koneksi->prepare("UPDATE pengiriman SET tujuan = ?, tanggal_kirim = ?, estimasi_tiba = ?, status_pengiriman = ? WHERE id = ?");
+    $stmt->bind_param("ssssi", $tujuan, $tanggal_kirim, $estimasi_tiba, $status_pengiriman, $id);
     $stmt->execute();
     $stmt->close();
 
@@ -108,7 +116,6 @@ require_once LAYOUTS_PATH . '/topbar.php';
 require_once LAYOUTS_PATH . '/sidebar.php';
 ?>
 
-
 <div class="main-content app-content">
     <div class="container-fluid">
         <div class="card custom-card mt-5">
@@ -135,6 +142,21 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                             <label class="form-label">Estimasi Tiba</label>
                             <input type="date" name="estimasi_tiba" class="form-control" value="<?= $data['estimasi_tiba'] ?>">
                         </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Status Pengiriman</label>
+                        <select name="status_pengiriman" class="form-select" required>
+                            <?php
+                            $statusOptions = ['diproses', 'dikirim', 'diterima'];
+                            foreach ($statusOptions as $opt):
+                                $selected = $data['status_pengiriman'] === $opt ? 'selected' : '';
+                            ?>
+                                <option value="<?= $opt ?>" <?= $selected ?>>
+                                    <?= ucfirst($opt) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
 
                     <hr class="my-4">
