@@ -88,19 +88,26 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                     </td>
                                     <?php if (in_array($role, ['admin', 'karyawan'])): ?>
                                         <td class="text-center">
-                                            <?php if ($row['koreksi']): ?>
+                                            <?php
+                                            $keterangan = trim($row['keterangan'] ?? '');
+
+                                            if ($row['koreksi'] == 0) {
+                                                // Belum koreksi ➜ data masih draft ➜ boleh edit
+                                                $bolehEdit = true;
+                                            } else {
+                                                // Sudah koreksi ➜ boleh edit kalau keterangan belum diisi atau '-'
+                                                $bolehEdit = ($keterangan === '' || $keterangan === '-');
+                                            }
+
+                                            if ($bolehEdit):
+                                            ?>
+                                                <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-icon btn-warning" title="Edit">
+                                                    <i class="fe fe-edit"></i>
+                                                </a>
+                                            <?php else: ?>
                                                 <span class="badge bg-light text-dark border">
                                                     <i class="fe fe-lock me-1"></i> Final
                                                 </span>
-                                            <?php else: ?>
-                                                <div class="btn-list d-flex justify-content-center">
-                                                    <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-icon btn-warning me-1" title="Edit">
-                                                        <i class="fe fe-edit"></i>
-                                                    </a>
-                                                    <button onclick="confirmDelete('delete.php?id=<?= $row['id'] ?>')" class="btn btn-sm btn-icon btn-danger" title="Hapus">
-                                                        <i class="fe fe-trash-2"></i>
-                                                    </button>
-                                                </div>
                                             <?php endif; ?>
                                         </td>
                                     <?php endif; ?>
