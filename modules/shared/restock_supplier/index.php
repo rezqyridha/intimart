@@ -55,8 +55,13 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                         <tbody>
                             <?php
                             $no = 1;
-                            $badgeMap = ['diproses' => 'warning', 'dikirim' => 'info', 'selesai' => 'success', 'batal' => 'danger'];
-                            $statusOptions = ['diperiksa', 'tindaklanjut', 'selesai'];
+                            $badgeMap = [
+                                'diproses' => 'warning',
+                                'dikirim'  => 'info',
+                                'selesai'  => 'success',
+                                'batal'    => 'danger'
+                            ];
+                            $statusOptions = ['diproses', 'dikirim', 'selesai', 'batal'];
                             while ($row = $result->fetch_assoc()):
                                 $status = strtolower($row['status']);
                                 $badge = 'bg-' . ($badgeMap[$status] ?? 'secondary');
@@ -70,7 +75,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                     <td><?= date('d/m/Y H:i', strtotime($row['created_at'])) ?></td>
                                     <td class="text-center">
                                         <?php if ($canEdit): ?>
-                                            <?php if ($status !== 'selesai'): ?>
+                                            <?php if ($status !== 'selesai' && $status !== 'batal'): ?>
                                                 <div class="dropdown">
                                                     <button class="btn btn-sm btn-warning dropdown-toggle" data-bs-toggle="dropdown">
                                                         Ubah Status
@@ -78,20 +83,15 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                                     <ul class="dropdown-menu">
                                                         <form action="update_status.php" method="post">
                                                             <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                                                            <?php
-                                                            foreach ($statusOptions as $opt):
-                                                                $optLower = strtolower(trim($opt));
-                                                                if ($optLower !== $status):
-                                                            ?>
+                                                            <?php foreach ($statusOptions as $opt):
+                                                                if ($opt !== $status): ?>
                                                                     <li>
-                                                                        <button type="submit" class="dropdown-item" name="status" value="<?= $optLower ?>">
-                                                                            <?= ucfirst($optLower) ?>
+                                                                        <button type="submit" class="dropdown-item" name="status" value="<?= $opt ?>">
+                                                                            <?= ucfirst($opt) ?>
                                                                         </button>
                                                                     </li>
-                                                            <?php
-                                                                endif;
-                                                            endforeach;
-                                                            ?>
+                                                            <?php endif;
+                                                            endforeach; ?>
                                                         </form>
                                                     </ul>
                                                 </div>
@@ -102,9 +102,9 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                             <?php endif; ?>
                                         <?php endif; ?>
                                     </td>
-
                                 </tr>
                             <?php endwhile; ?>
+
                         </tbody>
                     </table>
                 </div>
