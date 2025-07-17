@@ -36,7 +36,7 @@ if (strtolower($status) === 'lunas') {
     exit;
 }
 
-// Eksekusi hapus
+// Hapus data
 $stmt = $koneksi->prepare("DELETE FROM piutang WHERE id = ?");
 $stmt->bind_param("i", $id);
 

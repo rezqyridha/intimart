@@ -101,6 +101,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 return getNochangeText(obj);
             },
         },
+        overlimit: {
+            icon: "warning",
+            title: "Batas Terlampaui",
+            get text() {
+                return `Jumlah ${obj} melebihi batas yang ditentukan.`;
+            },
+        },
     };
 
     if (msg && notifications[msg]) {

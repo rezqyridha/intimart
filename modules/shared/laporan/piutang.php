@@ -12,27 +12,32 @@ $dari = $_GET['dari'] ?? date('Y-m-01');
 $sampai = $_GET['sampai'] ?? date('Y-m-d');
 $id_sales = $_GET['sales'] ?? '';
 
-// Query piutang otomatis dari penjualan
+// Ambil data piutang manual
 $query = "
-    SELECT p.id, p.tanggal, u.nama_lengkap AS nama_sales, b.nama_barang, b.satuan,
-           p.harga_total, 
-           COALESCE((SELECT SUM(jumlah_bayar) FROM pembayaran WHERE id_penjualan = p.id), 0) AS total_bayar,
-           (p.harga_total - COALESCE((SELECT SUM(jumlah_bayar) FROM pembayaran WHERE id_penjualan = p.id), 0)) AS sisa
-    FROM penjualan p
-    JOIN barang b ON p.id_barang = b.id
+    SELECT p.*, u.nama_lengkap AS nama_sales, b.nama_barang, b.satuan
+    FROM piutang p
     JOIN user u ON p.id_sales = u.id
-    WHERE p.status_pelunasan != 'lunas' 
-    AND p.tanggal BETWEEN '$dari' AND '$sampai'
+    LEFT JOIN penjualan pj ON p.id_penjualan = pj.id
+    LEFT JOIN barang b ON pj.id_barang = b.id
+    WHERE p.tanggal BETWEEN ? AND ?
 ";
 
-if ($id_sales !== '') {
-    $query .= " AND p.id_sales = " . intval($id_sales);
+$params = [$dari, $sampai];
+$types = 'ss';
+
+if (!empty($id_sales)) {
+    $query .= " AND p.id_sales = ?";
+    $types .= 'i';
+    $params[] = $id_sales;
 }
 
 $query .= " ORDER BY p.tanggal DESC";
-$data = $koneksi->query($query);
+$stmt = $koneksi->prepare($query);
+$stmt->bind_param($types, ...$params);
+$stmt->execute();
+$data = $stmt->get_result();
 
-// List sales untuk filter
+// Sales list
 $salesList = $koneksi->query("SELECT id, nama_lengkap FROM user WHERE role = 'sales'");
 
 require_once LAYOUTS_PATH . '/head.php';
@@ -45,7 +50,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
     <div class="container-fluid">
         <h3 class="mt-4 mb-3">📄 Laporan Piutang</h3>
 
-        <form method="GET" action="" class="row g-3 align-items-end mb-4">
+        <form method="GET" class="row g-3 align-items-end mb-4">
             <div class="col-md-3">
                 <label class="form-label">Dari Tanggal</label>
                 <input type="date" name="dari" class="form-control" value="<?= $dari ?>">
@@ -60,7 +65,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                     <option value="">Semua</option>
                     <?php foreach ($salesList as $s): ?>
                         <option value="<?= $s['id'] ?>" <?= $id_sales == $s['id'] ? 'selected' : '' ?>>
-                            <?= $s['nama_lengkap'] ?>
+                            <?= htmlspecialchars($s['nama_lengkap']) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -82,31 +87,33 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                             <th>Tanggal</th>
                             <th>Barang</th>
                             <th>Sales</th>
-                            <th>Total</th>
-                            <th>Terbayar</th>
-                            <th>Sisa</th>
+                            <th>Jumlah Piutang</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php $no = 1;
-                        $totalPiutang = 0; ?>
+                        $total = 0; ?>
                         <?php while ($row = $data->fetch_assoc()): ?>
                             <tr>
                                 <td><?= $no++ ?></td>
                                 <td><?= date('d-m-Y', strtotime($row['tanggal'])) ?></td>
-                                <td><?= htmlspecialchars($row['nama_barang']) ?> (<?= $row['satuan'] ?>)</td>
+                                <td><?= htmlspecialchars($row['nama_barang'] ?? '-') ?> (<?= $row['satuan'] ?? '-' ?>)</td>
                                 <td><?= htmlspecialchars($row['nama_sales']) ?></td>
-                                <td>Rp <?= number_format($row['harga_total'], 0, ',', '.') ?></td>
-                                <td>Rp <?= number_format($row['total_bayar'], 0, ',', '.') ?></td>
-                                <td>Rp <?= number_format($row['sisa'], 0, ',', '.') ?></td>
+                                <td>Rp <?= number_format($row['jumlah'], 0, ',', '.') ?></td>
+                                <td>
+                                    <span class="badge bg-<?= $row['status'] === 'lunas' ? 'success' : 'warning' ?>">
+                                        <?= ucfirst($row['status']) ?>
+                                    </span>
+                                </td>
                             </tr>
-                            <?php $totalPiutang += $row['sisa']; ?>
+                            <?php $total += $row['jumlah']; ?>
                         <?php endwhile; ?>
                     </tbody>
                     <tfoot>
                         <tr class="bg-light fw-bold">
-                            <td colspan="6" class="text-end">Total Piutang</td>
-                            <td>Rp <?= number_format($totalPiutang, 0, ',', '.') ?></td>
+                            <td colspan="4" class="text-end">Total Piutang</td>
+                            <td colspan="2">Rp <?= number_format($total, 0, ',', '.') ?></td>
                         </tr>
                     </tfoot>
                 </table>

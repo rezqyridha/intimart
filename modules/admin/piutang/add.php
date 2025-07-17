@@ -8,13 +8,15 @@ if ($_SESSION['role'] !== 'admin') {
     exit;
 }
 
-$id_sales = intval($_POST['id_sales'] ?? 0);
-$tanggal  = trim($_POST['tanggal'] ?? '');
-$jumlah   = trim($_POST['jumlah'] ?? '');
-$status   = trim($_POST['status'] ?? 'belum lunas');
+$id_penjualan = intval($_POST['id_penjualan'] ?? 0);
+$tanggal      = trim($_POST['tanggal'] ?? '');
+$jumlah       = trim($_POST['jumlah'] ?? '');
+$status       = trim($_POST['status'] ?? 'belum lunas');
 
-// Validasi kosong
-if ($id_sales <= 0 || empty($tanggal) || empty($jumlah) || empty($status)) {
+
+
+// Validasi input kosong
+if ($id_penjualan <= 0 || empty($tanggal) || empty($jumlah) || empty($status)) {
     header("Location: index.php?msg=kosong&obj=piutang");
     exit;
 }
@@ -25,22 +27,29 @@ if (!is_numeric($jumlah) || $jumlah <= 0) {
     exit;
 }
 
-// Cek sales valid
-$cekSales = $koneksi->prepare("SELECT id FROM user WHERE id = ? AND role = 'sales'");
-$cekSales->bind_param("i", $id_sales);
-$cekSales->execute();
-$cekSales->store_result();
+// Ambil id_sales dan harga_total dari penjualan
+$getPenjualan = $koneksi->prepare("SELECT id_sales, harga_total FROM penjualan WHERE id = ?");
+$getPenjualan->bind_param("i", $id_penjualan);
+$getPenjualan->execute();
+$getPenjualan->bind_result($id_sales, $harga_total);
+$getPenjualan->fetch();
+$getPenjualan->close();
 
-if ($cekSales->num_rows === 0) {
-    $cekSales->close();
+// Validasi data ditemukan
+if (!$id_sales || !$harga_total) {
     header("Location: index.php?msg=invalid&obj=piutang");
     exit;
 }
-$cekSales->close();
 
-// Simpan ke DB
-$stmt = $koneksi->prepare("INSERT INTO piutang (id_sales, tanggal, jumlah, status) VALUES (?, ?, ?, ?)");
-$stmt->bind_param("isds", $id_sales, $tanggal, $jumlah, $status);
+// Validasi jumlah piutang tidak boleh melebihi harga_total
+if ($jumlah > $harga_total) {
+    header("Location: index.php?msg=overlimit&obj=piutang");
+    exit;
+}
+
+// Simpan ke database
+$stmt = $koneksi->prepare("INSERT INTO piutang (id_sales, id_penjualan, tanggal, jumlah, status) VALUES (?, ?, ?, ?, ?)");
+$stmt->bind_param("iisss", $id_sales, $id_penjualan, $tanggal, $jumlah, $status);
 
 if ($stmt->execute()) {
     header("Location: index.php?msg=added&obj=piutang");

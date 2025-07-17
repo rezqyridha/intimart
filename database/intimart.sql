@@ -208,9 +208,11 @@ CREATE TABLE IF NOT EXISTS `pembayaran` (
   KEY `fk_pembayaran_penjualan` (`id_penjualan`),
   CONSTRAINT `fk_pembayaran_penjualan` FOREIGN KEY (`id_penjualan`) REFERENCES `penjualan` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `pembayaran_ibfk_1` FOREIGN KEY (`id_penjualan`) REFERENCES `penjualan` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dumping data for table intimart.pembayaran: ~4 rows (approximately)
+-- Dumping data for table intimart.pembayaran: ~0 rows (approximately)
+INSERT INTO `pembayaran` (`id`, `id_penjualan`, `metode`, `keterangan`, `tanggal`, `jumlah_bayar`) VALUES
+	(1, 1, 'tunai', '', '2025-07-03', 420000);
 
 -- Dumping structure for table intimart.pemesanan
 CREATE TABLE IF NOT EXISTS `pemesanan` (
@@ -287,26 +289,32 @@ CREATE TABLE IF NOT EXISTS `penjualan` (
   KEY `id_sales` (`id_sales`),
   CONSTRAINT `penjualan_ibfk_1` FOREIGN KEY (`id_barang`) REFERENCES `barang` (`id`),
   CONSTRAINT `penjualan_ibfk_2` FOREIGN KEY (`id_sales`) REFERENCES `user` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dumping data for table intimart.penjualan: ~5 rows (approximately)
+-- Dumping data for table intimart.penjualan: ~3 rows (approximately)
+INSERT INTO `penjualan` (`id`, `id_barang`, `id_sales`, `tanggal`, `jumlah`, `harga_total`, `status_pelunasan`) VALUES
+	(1, 2, 3, '2025-07-01', 5, 420000.00, 'lunas'),
+	(2, 2, 2, '2025-07-16', 2, 168000.00, 'lunas'),
+	(3, 5, 3, '2025-06-11', 10, 530000.00, 'belum lunas');
 
 -- Dumping structure for table intimart.piutang
 CREATE TABLE IF NOT EXISTS `piutang` (
   `id` int NOT NULL AUTO_INCREMENT,
   `id_sales` int DEFAULT NULL,
+  `id_penjualan` int DEFAULT NULL,
   `tanggal` date DEFAULT NULL,
   `jumlah` decimal(12,2) DEFAULT NULL,
   `status` enum('belum lunas','lunas') DEFAULT 'belum lunas',
   PRIMARY KEY (`id`),
   KEY `id_sales` (`id_sales`),
+  KEY `fk_piutang_penjualan` (`id_penjualan`),
+  CONSTRAINT `fk_piutang_penjualan` FOREIGN KEY (`id_penjualan`) REFERENCES `penjualan` (`id`),
   CONSTRAINT `piutang_ibfk_1` FOREIGN KEY (`id_sales`) REFERENCES `user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dumping data for table intimart.piutang: ~2 rows (approximately)
-INSERT INTO `piutang` (`id`, `id_sales`, `tanggal`, `jumlah`, `status`) VALUES
-	(1, 3, '2025-06-08', 41000.00, 'belum lunas'),
-	(2, 3, '2025-06-10', 53000.00, 'belum lunas');
+-- Dumping data for table intimart.piutang: ~1 rows (approximately)
+INSERT INTO `piutang` (`id`, `id_sales`, `id_penjualan`, `tanggal`, `jumlah`, `status`) VALUES
+	(3, 3, 3, '2025-07-01', 470000.00, 'belum lunas');
 
 -- Dumping structure for table intimart.produk_tidak_laku
 CREATE TABLE IF NOT EXISTS `produk_tidak_laku` (
@@ -342,9 +350,11 @@ CREATE TABLE IF NOT EXISTS `rekonsiliasi_pembayaran` (
   PRIMARY KEY (`id`),
   KEY `id_pembayaran` (`id_pembayaran`),
   CONSTRAINT `rekonsiliasi_pembayaran_ibfk_1` FOREIGN KEY (`id_pembayaran`) REFERENCES `pembayaran` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dumping data for table intimart.rekonsiliasi_pembayaran: ~4 rows (approximately)
+-- Dumping data for table intimart.rekonsiliasi_pembayaran: ~0 rows (approximately)
+INSERT INTO `rekonsiliasi_pembayaran` (`id`, `id_pembayaran`, `status`, `catatan`, `tanggal_rekonsiliasi`, `is_final`) VALUES
+	(1, 1, 'sesuai', '-', '2025-07-14 15:09:10', 1);
 
 -- Dumping structure for table intimart.restok_supplier
 CREATE TABLE IF NOT EXISTS `restok_supplier` (
@@ -436,10 +446,10 @@ CREATE TABLE IF NOT EXISTS `target_sales` (
 
 -- Dumping data for table intimart.target_sales: ~4 rows (approximately)
 INSERT INTO `target_sales` (`id`, `id_sales`, `bulan`, `target`) VALUES
-	(1, 2, '2025-06', 1000000,),
-	(2, 3, '2025-06', 1200000,),
-	(3, 2, '2025-07', 1100000,),
-	(4, 3, '2025-07', 1300000,);
+	(1, 2, '2025-06', 1000000),
+	(2, 3, '2025-06', 1200000),
+	(3, 2, '2025-07', 1100000),
+	(4, 3, '2025-07', 1300000);
 
 -- Dumping structure for table intimart.user
 CREATE TABLE IF NOT EXISTS `user` (

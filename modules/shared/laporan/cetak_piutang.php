@@ -14,26 +14,32 @@ $id_sales = $_GET['sales'] ?? '';
 
 $query = "
     SELECT p.tanggal, u.nama_lengkap AS nama_sales, b.nama_barang, b.satuan,
-           p.harga_total, 
-           COALESCE((SELECT SUM(jumlah_bayar) FROM pembayaran WHERE id_penjualan = p.id), 0) AS total_bayar,
-           (p.harga_total - COALESCE((SELECT SUM(jumlah_bayar) FROM pembayaran WHERE id_penjualan = p.id), 0)) AS sisa
-    FROM penjualan p
-    JOIN barang b ON p.id_barang = b.id
+           p.jumlah AS jumlah_piutang, p.status
+    FROM piutang p
     JOIN user u ON p.id_sales = u.id
-    WHERE p.status_pelunasan != 'lunas'
-    AND p.tanggal BETWEEN '$dari' AND '$sampai'
+    LEFT JOIN penjualan pj ON p.id_penjualan = pj.id
+    LEFT JOIN barang b ON pj.id_barang = b.id
+    WHERE p.tanggal BETWEEN ? AND ?
 ";
 
-if ($id_sales !== '') {
-    $query .= " AND p.id_sales = " . intval($id_sales);
+$params = [$dari, $sampai];
+$types = 'ss';
+
+if (!empty($id_sales)) {
+    $query .= " AND p.id_sales = ?";
+    $types .= 'ssi';
+    $params[] = $id_sales;
 }
 
 $query .= " ORDER BY p.tanggal ASC";
-$data = $koneksi->query($query);
+$stmt = $koneksi->prepare($query);
+$stmt->bind_param($types, ...$params);
+$stmt->execute();
+$data = $stmt->get_result();
 
+// PDF
 $pdf = new FPDF('P', 'mm', 'A4');
 $pdf->AddPage();
-
 $pdf->SetFont('Arial', 'B', 14);
 $pdf->Cell(0, 7, 'PT. INTI BOGA MANDIRI', 0, 1, 'C');
 $pdf->SetFont('Arial', '', 10);
@@ -43,68 +49,56 @@ $pdf->Cell(0, 5, 'Telp: 0511-3360373, 0511-4366629, 0511-4369746', 0, 1, 'C');
 $pdf->Ln(8);
 
 $pdf->SetFont('Arial', 'B', 12);
-$pdf->Cell(0, 7, 'LAPORAN PIUTANG', 0, 1, 'C');
+$pdf->Cell(0, 7, 'LAPORAN PIUTANG ', 0, 1, 'C');
 $pdf->SetFont('Arial', '', 10);
 $pdf->Cell(0, 6, "Periode: " . date('d/m/Y', strtotime($dari)) . " s.d " . date('d/m/Y', strtotime($sampai)), 0, 1, 'C');
 $pdf->Ln(4);
 
+// Header tabel
 $pdf->SetFont('Arial', 'B', 10);
 $pdf->SetFillColor(230, 230, 230);
 $pdf->Cell(10, 8, 'No', 1, 0, 'C', true);
 $pdf->Cell(22, 8, 'Tanggal', 1, 0, 'C', true);
 $pdf->Cell(43, 8, 'Barang', 1, 0, 'C', true);
 $pdf->Cell(38, 8, 'Sales', 1, 0, 'C', true);
-$pdf->Cell(27, 8, 'Total', 1, 0, 'C', true);
-$pdf->Cell(27, 8, 'Terbayar', 1, 0, 'C', true);
-$pdf->Cell(23, 8, 'Sisa', 1, 1, 'C', true);
+$pdf->Cell(40, 8, 'Jumlah Piutang', 1, 0, 'C', true);
+$pdf->Cell(37, 8, 'Status', 1, 1, 'C', true);
 
-
+// Data
 $pdf->SetFont('Arial', '', 10);
 $no = 1;
-$total_all = 0;
+$total = 0;
 while ($row = $data->fetch_assoc()) {
     $tanggal = date('d-m-Y', strtotime($row['tanggal']));
-    $barang = $row['nama_barang'] . ' (' . $row['satuan'] . ')';
+    $barang = ($row['nama_barang'] ?? '-') . ' (' . ($row['satuan'] ?? '-') . ')';
     $sales = $row['nama_sales'];
-    $total = $row['harga_total'];
-    $terbayar = $row['total_bayar'];
-    $sisa = $row['sisa'];
+    $jumlah = $row['jumlah_piutang'];
+    $status = ucfirst($row['status']);
 
     $x = $pdf->GetX();
     $y = $pdf->GetY();
 
-    // Cetak barang dulu (MultiCell)
-    $pdf->SetXY($x + 10 + 22, $y); // Lewati No + Tanggal
+    $pdf->SetXY($x + 10 + 22, $y);
     $pdf->MultiCell(43, 6, $barang, 1);
     $cellHeight = $pdf->GetY() - $y;
 
-    // Kolom No
     $pdf->SetXY($x, $y);
     $pdf->Cell(10, $cellHeight, $no++, 1, 0, 'C');
-
-    // Kolom Tanggal
     $pdf->SetXY($x + 10, $y);
     $pdf->Cell(22, $cellHeight, $tanggal, 1);
-
-    // Kolom Sales
     $pdf->SetXY($x + 10 + 22 + 43, $y);
     $pdf->Cell(38, $cellHeight, $sales, 1);
+    $pdf->Cell(40, $cellHeight, 'Rp ' . number_format($jumlah, 0, ',', '.'), 1, 0, 'R');
+    $pdf->Cell(37, $cellHeight, $status, 1, 1, 'C');
 
-    // Total, Terbayar, Sisa
-    $pdf->Cell(27, $cellHeight, 'Rp ' . number_format($total, 0, ',', '.'), 1, 0, 'R');
-    $pdf->Cell(27, $cellHeight, 'Rp ' . number_format($terbayar, 0, ',', '.'), 1, 0, 'R');
-    $pdf->Cell(23, $cellHeight, 'Rp ' . number_format($sisa, 0, ',', '.'), 1, 1, 'R');
-
-    $total_all += $sisa;
+    $total += $jumlah;
 }
 
-
-// Footer total, merge kolom dan "Total Seluruh" di kiri
+// Footer Total
 $pdf->SetFont('Arial', 'B', 10);
-// Merge 6 kolom pertama (10+22+43+38+27+27 = 167)
-$pdf->Cell(167, 8, 'Total Seluruh', 1, 0, 'L', true);
-$pdf->Cell(23, 8, 'Rp ' . number_format($total_all, 0, ',', '.'), 1, 1, 'R', true); // Sisa
-
+$pdf->Cell(113, 8, 'Total Seluruh', 1, 0, 'L', true);
+$pdf->Cell(40, 8, 'Rp ' . number_format($total, 0, ',', '.'), 1, 0, 'R', true);
+$pdf->Cell(37, 8, '', 1, 1);
 
 $pdf->Ln(10);
 $pdf->SetFont('Arial', '', 10);
@@ -118,5 +112,5 @@ $pdf->Cell(130, 6, '', 0);
 $pdf->SetFont('Arial', 'BU', 10);
 $pdf->Cell(60, 6, 'Administrator', 0, 1);
 
-$pdf->Output("I", "laporan_piutang.pdf");
+$pdf->Output("I", "laporan_piutang_manual.pdf");
 exit;
