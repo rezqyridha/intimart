@@ -429,18 +429,17 @@ CREATE TABLE IF NOT EXISTS `target_sales` (
   `id_sales` int DEFAULT NULL,
   `bulan` varchar(7) DEFAULT NULL,
   `target` int DEFAULT NULL,
-  `realisasi` int DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `id_sales` (`id_sales`),
   CONSTRAINT `target_sales_ibfk_1` FOREIGN KEY (`id_sales`) REFERENCES `user` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table intimart.target_sales: ~4 rows (approximately)
-INSERT INTO `target_sales` (`id`, `id_sales`, `bulan`, `target`, `realisasi`) VALUES
-	(1, 2, '2025-06', 1000000, 850000),
-	(2, 3, '2025-06', 1200000, 900000),
-	(3, 2, '2025-07', 1100000, 0),
-	(4, 3, '2025-07', 1300000, 0);
+INSERT INTO `target_sales` (`id`, `id_sales`, `bulan`, `target`) VALUES
+	(1, 2, '2025-06', 1000000,),
+	(2, 3, '2025-06', 1200000,),
+	(3, 2, '2025-07', 1100000,),
+	(4, 3, '2025-07', 1300000,);
 
 -- Dumping structure for table intimart.user
 CREATE TABLE IF NOT EXISTS `user` (
