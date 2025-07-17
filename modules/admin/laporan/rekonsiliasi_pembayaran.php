@@ -10,8 +10,30 @@ if ($_SESSION['role'] !== 'admin') {
 
 $dari = $_GET['dari'] ?? date('Y-m-01');
 $sampai = $_GET['sampai'] ?? date('Y-m-d');
+$tanggal = $_GET['tanggal'] ?? '';
 $status = $_GET['status'] ?? '';
 $metode = $_GET['metode'] ?? '';
+
+$where = [];
+
+// Tanggal filter
+if (!empty($tanggal)) {
+    $where[] = "DATE(rp.tanggal_rekonsiliasi) = '$tanggal'";
+} elseif (!empty($dari) && !empty($sampai)) {
+    $where[] = "DATE(rp.tanggal_rekonsiliasi) >= '$dari' AND DATE(rp.tanggal_rekonsiliasi) <= '$sampai'";
+}
+
+// Filter status
+if ($status !== '' && $status !== 'Semua') {
+    $where[] = "rp.status = '$status'";
+}
+
+// Filter metode
+if ($metode !== '' && $metode !== 'Semua') {
+    $where[] = "p.metode = '$metode'";
+}
+
+$whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
 
 $query = "
     SELECT rp.*, b.nama_barang, b.satuan, p.tanggal, p.metode, p.jumlah_bayar
@@ -19,21 +41,13 @@ $query = "
     JOIN pembayaran p ON rp.id_pembayaran = p.id
     JOIN penjualan j ON p.id_penjualan = j.id
     JOIN barang b ON j.id_barang = b.id
-    WHERE rp.tanggal_rekonsiliasi BETWEEN '$dari' AND '$sampai'
+    $whereClause
+    ORDER BY rp.tanggal_rekonsiliasi DESC
 ";
 
-// Filter status
-if ($status !== '') {
-    $query .= " AND rp.status = '$status'";
-}
-
-// Filter metode
-if ($metode !== '') {
-    $query .= " AND p.metode = '$metode'";
-}
-
-$query .= " ORDER BY rp.tanggal_rekonsiliasi DESC";
 $result = $koneksi->query($query);
+
+
 
 require_once LAYOUTS_PATH . '/head.php';
 require_once LAYOUTS_PATH . '/header.php';

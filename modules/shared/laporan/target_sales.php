@@ -23,11 +23,20 @@ if (in_array($role, ['admin', 'manajer'])) {
 
 // Query utama laporan
 $query = "
-    SELECT ts.*, u.nama_lengkap 
+    SELECT 
+        ts.id, ts.id_sales, ts.bulan, ts.target,
+        u.nama_lengkap,
+        (
+            SELECT IFNULL(SUM(p.harga_total), 0)
+            FROM penjualan p
+            WHERE p.id_sales = ts.id_sales
+              AND DATE_FORMAT(p.tanggal, '%Y-%m') = ts.bulan
+        ) AS realisasi
     FROM target_sales ts
     JOIN user u ON ts.id_sales = u.id
     WHERE 1=1
 ";
+
 
 if ($bulan !== '') {
     $query .= " AND ts.bulan = '$bulan'";

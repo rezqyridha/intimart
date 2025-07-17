@@ -27,8 +27,18 @@ if (!$data) {
     exit;
 }
 
-// Cek jika target sudah terlampaui
-if ($data['realisasi'] > $data['target']) {
+// Hitung realisasi langsung dari penjualan
+$stmtRealisasi = $koneksi->prepare("
+    SELECT IFNULL(SUM(harga_total), 0) AS realisasi
+    FROM penjualan
+    WHERE id_sales = ? AND DATE_FORMAT(tanggal, '%Y-%m') = ?
+");
+$stmtRealisasi->bind_param("is", $data['id_sales'], $data['bulan']);
+$stmtRealisasi->execute();
+$realisasi = $stmtRealisasi->get_result()->fetch_assoc()['realisasi'];
+$stmtRealisasi->close();
+
+if ($realisasi > $data['target']) {
     header("Location: index.php?msg=locked&obj=target");
     exit;
 }
