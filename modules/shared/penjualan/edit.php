@@ -26,38 +26,42 @@ if (!$data) {
     exit;
 }
 
-// Ambil daftar barang
-$barangList = $koneksi->query("SELECT id, nama_barang, satuan FROM barang ORDER BY nama_barang ASC");
+// Ambil daftar barang untuk dropdown + harga untuk JS
+$barangList = $koneksi->query("SELECT id, nama_barang, satuan, harga_jual FROM barang ORDER BY nama_barang ASC");
+$hargaArray = [];
+while ($b = $barangList->fetch_assoc()) {
+    $hargaArray[$b['id']] = $b['harga_jual'];
+    $dropdownOptions[] = $b; // Simpan data barang untuk digunakan ulang
+}
 
+// Form dikirim
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_barang = (int)($_POST['id_barang'] ?? 0);
     $jumlah    = (int)($_POST['jumlah'] ?? 0);
-    $harga     = (float)($_POST['harga'] ?? 0);
     $tanggal   = $_POST['tanggal'] ?? '';
-    $keterangan = trim($_POST['keterangan'] ?? '');
 
-    if ($id_barang <= 0 || $jumlah <= 0 || $harga <= 0 || empty($tanggal)) {
+    if ($id_barang <= 0 || $jumlah <= 0 || empty($tanggal)) {
         header("Location: edit.php?id=$id&msg=kosong&obj=penjualan");
         exit;
     }
 
-    // Cek barang
-    $cek = $koneksi->prepare("SELECT COUNT(*) FROM barang WHERE id = ?");
-    $cek->bind_param("i", $id_barang);
-    $cek->execute();
-    $cek->bind_result($ada);
-    $cek->fetch();
-    $cek->close();
+    // Ambil harga dari DB
+    $stmt = $koneksi->prepare("SELECT harga_jual FROM barang WHERE id = ?");
+    $stmt->bind_param("i", $id_barang);
+    $stmt->execute();
+    $stmt->bind_result($harga_jual);
+    $stmt->fetch();
+    $stmt->close();
 
-    if (!$ada) {
-        header("Location: edit.php?id=$id&msg=invalid&obj=penjualan");
+    if (!$harga_jual) {
+        header("Location: edit.php?id=$id&msg=invalidharga&obj=penjualan");
         exit;
     }
 
-    $total = $jumlah * $harga;
+    $total = $jumlah * $harga_jual;
 
-    $stmt = $koneksi->prepare("UPDATE penjualan SET id_barang=?, jumlah=?, harga=?, total=?, tanggal=?, keterangan=? WHERE id=?");
-    $stmt->bind_param("iiidssi", $id_barang, $jumlah, $harga, $total, $tanggal, $keterangan, $id);
+    $stmt = $koneksi->prepare("UPDATE penjualan SET id_barang=?, jumlah=?, harga_total=?, tanggal=? WHERE id=?");
+    $stmt->bind_param("iidsi", $id_barang, $jumlah, $total, $tanggal, $id);
 
     if ($stmt->execute()) {
         header("Location: index.php?msg=updated&obj=penjualan");
@@ -85,30 +89,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <form method="post">
                     <div class="mb-3">
                         <label for="id_barang" class="form-label">Barang</label>
-                        <select class="form-select" name="id_barang" id="id_barang" required>
+                        <select class="form-select" name="id_barang" id="id_barang" required onchange="hitungTotal()">
                             <option value="">-- Pilih Barang --</option>
-                            <?php while ($b = $barangList->fetch_assoc()): ?>
-                                <option value="<?= $b['id'] ?>" <?= $b['id'] == $data['id_barang'] ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($b['nama_barang']) ?> (<?= $b['satuan'] ?>)
+                            <?php foreach ($dropdownOptions as $item): ?>
+                                <option value="<?= $item['id'] ?>" <?= ($item['id'] == $data['id_barang']) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($item['nama_barang']) ?> (<?= htmlspecialchars($item['satuan']) ?>)
                                 </option>
-                            <?php endwhile; ?>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="mb-3">
                         <label for="jumlah" class="form-label">Jumlah</label>
-                        <input type="number" name="jumlah" id="jumlah" class="form-control" required value="<?= $data['jumlah'] ?>">
+                        <input type="number" name="jumlah" id="jumlah" class="form-control" required value="<?= $data['jumlah'] ?>" oninput="hitungTotal()">
                     </div>
                     <div class="mb-3">
-                        <label for="harga" class="form-label">Harga Satuan</label>
-                        <input type="number" name="harga" id="harga" class="form-control" step="0.01" required value="<?= $data['harga'] ?>">
+                        <label for="harga_total" class="form-label">Total Harga</label>
+                        <input type="number" name="harga_total" id="harga_total" class="form-control" readonly value="<?= $data['harga_total'] ?>">
                     </div>
                     <div class="mb-3">
                         <label for="tanggal" class="form-label">Tanggal</label>
                         <input type="date" name="tanggal" id="tanggal" class="form-control" required value="<?= $data['tanggal'] ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label for="keterangan" class="form-label">Keterangan</label>
-                        <textarea name="keterangan" id="keterangan" class="form-control"><?= htmlspecialchars($data['keterangan']) ?></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary">
                         <i class="fe fe-save"></i> Simpan Perubahan
@@ -118,6 +118,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </div>
+
+<script>
+    const hargaBarang = <?= json_encode($hargaArray) ?>;
+
+    function hitungTotal() {
+        const idBarang = document.getElementById('id_barang').value;
+        const jumlah = parseInt(document.getElementById('jumlah').value) || 0;
+        const harga = hargaBarang[idBarang] || 0;
+        document.getElementById('harga_total').value = harga * jumlah;
+    }
+
+    // Panggil saat halaman selesai dimuat agar langsung menghitung
+    window.addEventListener('DOMContentLoaded', hitungTotal);
+</script>
 
 <?php require_once LAYOUTS_PATH . '/footer.php'; ?>
 <?php require_once LAYOUTS_PATH . '/scripts.php'; ?>
