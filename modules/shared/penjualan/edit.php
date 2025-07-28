@@ -3,7 +3,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/intimart/config/constants.php';
 require_once AUTH_PATH . '/session.php';
 require_once CONFIG_PATH . '/koneksi.php';
 
-if ($_SESSION['role'] !== 'admin') {
+if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'sales') {
     header("Location: index.php?msg=unauthorized&obj=penjualan");
     exit;
 }
@@ -31,18 +31,40 @@ $barangList = $koneksi->query("SELECT id, nama_barang, satuan, harga_jual FROM b
 $hargaArray = [];
 while ($b = $barangList->fetch_assoc()) {
     $hargaArray[$b['id']] = $b['harga_jual'];
-    $dropdownOptions[] = $b; // Simpan data barang untuk digunakan ulang
+    $dropdownOptions[] = $b;
+}
+
+// Ambil data sales jika user admin
+$salesOptions = [];
+if ($_SESSION['role'] === 'admin') {
+    $q = $koneksi->query("SELECT id, nama_lengkap FROM user WHERE role = 'sales' ORDER BY nama_lengkap ASC");
+    while ($row = $q->fetch_assoc()) {
+        $salesOptions[] = $row;
+    }
 }
 
 // Form dikirim
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_barang = (int)($_POST['id_barang'] ?? 0);
+    $id_sales  = (int)($_POST['id_sales'] ?? 0);
     $jumlah    = (int)($_POST['jumlah'] ?? 0);
     $tanggal   = $_POST['tanggal'] ?? '';
+    $status_pelunasan = $_POST['status_pelunasan'] ?? '';
 
-    if ($id_barang <= 0 || $jumlah <= 0 || empty($tanggal)) {
+    $allowed_status = ['belum lunas', 'lunas'];
+    if (!in_array($status_pelunasan, $allowed_status)) {
+        header("Location: edit.php?id=$id&msg=invalidstatus&obj=penjualan");
+        exit;
+    }
+
+    if ($id_barang <= 0 || $jumlah <= 0 || empty($tanggal) || $id_sales <= 0) {
         header("Location: edit.php?id=$id&msg=kosong&obj=penjualan");
         exit;
+    }
+
+    // Jika user login sebagai sales, paksa id_sales
+    if ($_SESSION['role'] === 'sales') {
+        $id_sales = $_SESSION['id_user'];
     }
 
     // Ambil harga dari DB
@@ -60,8 +82,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $total = $jumlah * $harga_jual;
 
-    $stmt = $koneksi->prepare("UPDATE penjualan SET id_barang=?, jumlah=?, harga_total=?, tanggal=? WHERE id=?");
-    $stmt->bind_param("iidsi", $id_barang, $jumlah, $total, $tanggal, $id);
+    // Update data
+    $stmt = $koneksi->prepare("UPDATE penjualan SET id_barang=?, id_sales=?, jumlah=?, harga_total=?, tanggal=?, status_pelunasan=? WHERE id=?");
+    $stmt->bind_param("iiidssi", $id_barang, $id_sales, $jumlah, $total, $tanggal, $status_pelunasan, $id);
 
     if ($stmt->execute()) {
         header("Location: index.php?msg=updated&obj=penjualan");
@@ -98,6 +121,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <?php endforeach; ?>
                         </select>
                     </div>
+
+                    <div class="mb-3">
+                        <label for="id_sales" class="form-label">Sales</label>
+                        <?php if ($_SESSION['role'] === 'sales'): ?>
+                            <input type="hidden" name="id_sales" value="<?= $_SESSION['id_user'] ?>">
+                            <input type="text" class="form-control" value="<?= htmlspecialchars($_SESSION['nama_lengkap']) ?>" readonly>
+                        <?php else: ?>
+                            <select name="id_sales" id="id_sales" class="form-select" required>
+                                <option value="" hidden>-- Pilih Sales --</option>
+                                <?php foreach ($salesOptions as $s): ?>
+                                    <option value="<?= $s['id'] ?>" <?= ($s['id'] == $data['id_sales']) ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($s['nama_lengkap']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        <?php endif; ?>
+                    </div>
+
                     <div class="mb-3">
                         <label for="jumlah" class="form-label">Jumlah</label>
                         <input type="number" name="jumlah" id="jumlah" class="form-control" required value="<?= $data['jumlah'] ?>" oninput="hitungTotal()">
@@ -110,6 +151,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label for="tanggal" class="form-label">Tanggal</label>
                         <input type="date" name="tanggal" id="tanggal" class="form-control" required value="<?= $data['tanggal'] ?>">
                     </div>
+                    <div class="mb-3">
+                        <label for="status_pelunasan" class="form-label">Status Pelunasan</label>
+                        <select name="status_pelunasan" id="status_pelunasan" class="form-select" required>
+                            <option value="belum lunas" <?= ($data['status_pelunasan'] === 'belum lunas') ? 'selected' : '' ?>>Belum Lunas</option>
+                            <option value="lunas" <?= ($data['status_pelunasan'] === 'lunas') ? 'selected' : '' ?>>Lunas</option>
+                        </select>
+                    </div>
+
                     <button type="submit" class="btn btn-primary">
                         <i class="fe fe-save"></i> Simpan Perubahan
                     </button>
@@ -129,7 +178,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         document.getElementById('harga_total').value = harga * jumlah;
     }
 
-    // Panggil saat halaman selesai dimuat agar langsung menghitung
     window.addEventListener('DOMContentLoaded', hitungTotal);
 </script>
 

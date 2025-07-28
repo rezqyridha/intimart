@@ -40,7 +40,7 @@ foreach ($id_barangs as $i => $id_barang) {
         ) pj ON b.id = pj.id_barang
         LEFT JOIN (
             SELECT p.id_barang, SUM(r.jumlah) AS total_retur
-            FROM retur r
+            FROM retur_penjualan r
             JOIN penjualan p ON r.id_penjualan = p.id
             GROUP BY p.id_barang
         ) retur ON b.id = retur.id_barang

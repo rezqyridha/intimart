@@ -79,7 +79,7 @@ require_once LAYOUTS_PATH . '/sidebar.php';
                                     <td><?= $row['detail_barang'] ?></td>
                                     <?php if ($role === 'admin'): ?>
                                         <td class="text-center">
-                                            <?php if (in_array($row['status_pengiriman'], ['diproses'])): ?>
+                                            <?php if (in_array($row['status_pengiriman'], ['diproses', 'dikirim'])): ?>
                                                 <div class="btn-list d-flex justify-content-center">
                                                     <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-icon btn-warning me-1" title="Edit">
                                                         <i class="fe fe-edit"></i>
