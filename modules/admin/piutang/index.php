@@ -112,23 +112,28 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="id_penjualan" class="form-label">Penjualan (Barang & Sales)</label>
+                            <!-- Dropdown Penjualan -->
                             <select name="id_penjualan" id="id_penjualan" class="form-select" required>
                                 <option value="" hidden>-- Pilih Penjualan --</option>
                                 <?php
                                 $penjualan = $koneksi->query("
-                                    SELECT pj.id, pj.tanggal, pj.jumlah, b.nama_barang, u.nama_lengkap AS nama_sales
+                                    SELECT pj.id, pj.tanggal, pj.jumlah, pj.harga_total, b.nama_barang, u.nama_lengkap AS nama_sales
                                     FROM penjualan pj
                                     JOIN barang b ON pj.id_barang = b.id
                                     JOIN user u ON pj.id_sales = u.id
                                     WHERE pj.status_pelunasan = 'belum lunas'
+                                    AND pj.id NOT IN (
+                                        SELECT id_penjualan FROM piutang
+                                    )
                                     ORDER BY pj.tanggal DESC
                                 ");
                                 while ($pj = $penjualan->fetch_assoc()) {
                                     $label = "[{$pj['tanggal']}] {$pj['nama_barang']} - {$pj['jumlah']} pcs | Sales: {$pj['nama_sales']}";
-                                    echo "<option value='{$pj['id']}'>" . htmlspecialchars($label) . "</option>";
+                                    echo "<option value='{$pj['id']}' data-harga='{$pj['harga_total']}'>" . htmlspecialchars($label) . "</option>";
                                 }
                                 ?>
                             </select>
+
                         </div>
 
                         <div class="mb-3">
@@ -138,8 +143,10 @@
 
                         <div class="mb-3">
                             <label for="jumlah" class="form-label">Jumlah (Rp)</label>
-                            <input type="number" name="jumlah" id="jumlah" class="form-control" min="1000" step="500" required>
+                            <input type="number" name="jumlah" id="jumlah" class="form-control" required min="1000" step="500">
+                            <small class="text-muted" id="label-maksimal">Maksimal: Rp -</small>
                         </div>
+
 
                         <div class="mb-3">
                             <label for="status" class="form-label">Status</label>
@@ -168,5 +175,22 @@
             document.querySelectorAll("#tabel-piutang tbody tr").forEach(row => {
                 row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
             });
+        });
+
+        document.getElementById("id_penjualan").addEventListener("change", function() {
+            const selected = this.options[this.selectedIndex];
+            const harga = selected.getAttribute("data-harga");
+            const jumlah = document.getElementById("jumlah");
+            const label = document.getElementById("label-maksimal");
+
+            if (harga) {
+                jumlah.max = harga;
+                jumlah.value = harga;
+                label.textContent = "Maksimal: Rp " + new Intl.NumberFormat('id-ID').format(harga);
+            } else {
+                jumlah.max = "";
+                jumlah.value = "";
+                label.textContent = "Maksimal: Rp -";
+            }
         });
     </script>

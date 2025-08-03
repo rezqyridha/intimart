@@ -112,5 +112,5 @@ $pdf->Cell(130, 6, '', 0);
 $pdf->SetFont('Arial', 'BU', 10);
 $pdf->Cell(60, 6, 'Administrator', 0, 1);
 
-$pdf->Output("I", "laporan_piutang_manual.pdf");
+$pdf->Output("I", "laporan_piutang.pdf");
 exit;
